@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Plus, Trash2, X } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import { Plus, Trash2, Upload, X } from "lucide-react";
+import React, { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/trtd/AppShell";
 import { PageHeader, useGuard } from "@/components/trtd/Guard";
@@ -184,6 +184,7 @@ function NewRequestPage() {
   const [dateOfIssue, setDateOfIssue] = useState("");
   const [documents, setDocuments] = useState<string[]>([]);
   const [docInput, setDocInput] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
   const [remarks, setRemarks] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -696,7 +697,29 @@ function NewRequestPage() {
                 >
                   Attach
                 </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" /> Upload files
+                </Button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const picked = Array.from(e.target.files ?? []).map((f) => f.name);
+                    if (picked.length) setDocuments((prev) => [...prev, ...picked]);
+                    e.target.value = "";
+                  }}
+                />
               </div>
+              <p className="text-xs text-muted-foreground">
+                Multiple documents can be attached (LC copy, pro-forma invoice, sales
+                contract, etc.).
+              </p>
               {documents.length ? (
                 <div className="flex flex-wrap gap-2 pt-1">
                   {documents.map((doc, i) => (

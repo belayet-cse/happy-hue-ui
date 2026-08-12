@@ -404,23 +404,39 @@ export function recordForwardResponse(
   });
 }
 
-export function offerPrice(
-  id: string,
-  actor: Session,
-  quote: Omit<PriceQuote, "quotedAt" | "quotedBy" | "revision">,
-) {
+export type QuoteInput = Omit<PriceQuote, "quotedAt" | "quotedBy" | "revision">;
+
+export function offerPrice(id: string, actor: Session, quote: QuoteInput) {
+  offerPrices(id, actor, [quote]);
+}
+
+/** Offer one or more bank pricing options for the same transaction. */
+export function offerPrices(id: string, actor: Session, quotes: QuoteInput[]) {
   applyUpdate(id, (txn) => {
-    const revision = txn.quotes.length + 1;
+    const base = txn.quotes.length;
+    const added = quotes.map((q, i) => ({
+      ...q,
+      optionNo: q.optionNo ?? i + 1,
+      quotedAt: nowIso(),
+      quotedBy: actor.name,
+      revision: base + i + 1,
+    }));
+    const label =
+      added.length > 1
+        ? `Price quote offered — ${added.length} bank options`
+        : `Price quote offered (revision ${added[0]!.revision})`;
     const updated = withHistory(
       {
         ...txn,
-        quotes: [...txn.quotes, { ...quote, quotedAt: nowIso(), quotedBy: actor.name, revision }],
+        quotes: [...txn.quotes, ...added],
         rejectionReason: undefined,
+        acceptedQuoteRevision: undefined,
       },
       actor.name,
       actor.role,
-      `Price quote offered (revision ${revision})`,
+      label,
       "PRICE_OFFERED",
+      added.map((a) => `${a.bankName || "Bank"}: ${a.pricingSummary || a.financingMargin}`).join(" | "),
     );
     return {
       txn: updated,
@@ -428,7 +444,7 @@ export function offerPrice(
         notify(
           updated,
           "RM",
-          revision > 1 ? "Revised price offered" : "Price offered",
+          base > 0 ? "Revised price offered" : "Price offered",
           `${txn.referenceNo}: pricing is available for your acceptance.`,
         ),
       ],
@@ -436,13 +452,22 @@ export function offerPrice(
   });
 }
 
-export function acceptPrice(id: string, actor: Session, remarks: string) {
+export function acceptPrice(
+  id: string,
+  actor: Session,
+  remarks: string,
+  revision?: number,
+) {
   applyUpdate(id, (txn) => {
+    const chosen = revision ?? latestQuote(txn)?.revision;
+    const picked = txn.quotes.find((q) => q.revision === chosen);
     const updated = withHistory(
-      txn,
+      { ...txn, acceptedQuoteRevision: chosen },
       actor.name,
       actor.role,
-      "Price accepted — routed to MITS for execution",
+      picked?.bankName
+        ? `Price accepted (${picked.bankName}) — routed to MITS for execution`
+        : "Price accepted — routed to MITS for execution",
       "ACCEPTED",
       remarks,
     );
@@ -455,6 +480,7 @@ export function acceptPrice(id: string, actor: Session, remarks: string) {
     };
   });
 }
+
 
 export function rejectPrice(id: string, actor: Session, reason: string) {
   applyUpdate(id, (txn) => {
