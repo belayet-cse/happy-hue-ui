@@ -679,5 +679,17 @@ export function seedNotifications(): AppNotification[] {
       read: false,
       emailTo: "mits@mtb.com.bd",
     },
+    ...[1006, 1007, 1008].map((seq, i) => ({
+      id: `n-${seq}`,
+      at: "2026-08-11T06:40:00.000Z",
+      toRole: "MFIS" as const,
+      transactionId: `txn-${seq}`,
+      referenceNo: `TRTD-2026-00${seq}`,
+      title: "New add confirmation & discounting request",
+      body: `RM submitted LC line ${i + 1} of 3 under a single multi-LC request (Padma Polymer Industries Ltd.).`,
+      read: false,
+      emailTo: "mfis@mtb.com.bd",
+    })),
   ];
+
 }
