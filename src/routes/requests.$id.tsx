@@ -552,7 +552,9 @@ function ActionPanel({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                This transaction is not yet with MITS.
+                {txn.status === "COMPLETED"
+                  ? "This transaction is complete. No further action required."
+                  : "This transaction is not yet with MITS."}
               </p>
             )}
           </>
