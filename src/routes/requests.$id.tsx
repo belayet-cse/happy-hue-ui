@@ -3,7 +3,9 @@ import { useState } from "react";
 import { ArrowLeft, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/trtd/AppShell";
+import { AttachmentList } from "@/components/trtd/Attachments";
 import { useGuard } from "@/components/trtd/Guard";
+
 import { FieldRow, FieldTable } from "@/components/trtd/FieldTable";
 import { PriceQuoteForm } from "@/components/trtd/PriceQuoteForm";
 import { StatusBadge } from "@/components/trtd/StatusBadge";
@@ -199,9 +201,12 @@ function RequestDetailPage() {
                 <FieldRow
                   label="Documents attached"
                   value={
-                    [d.lcCopyFileName, ...(d.attachments ?? [])].filter(Boolean).join(", ")
+                    <AttachmentList
+                      files={[d.lcCopyFileName, ...(d.attachments ?? [])]}
+                    />
                   }
                 />
+
                 <FieldRow label="Beneficiary payment note" value={d.beneficiaryPaymentNote} />
                 <FieldRow label="Remarks" value={d.remarks} />
                 {txn.rejectionReason ? (
@@ -410,9 +415,10 @@ function QuoteCard({
       {role === "MFIS" ? (
         <FieldRow
           label="Attachment (MFIS only)"
-          value={(q.thirdBankMailFiles ?? []).join(", ") || "—"}
+          value={<AttachmentList files={q.thirdBankMailFiles ?? []} />}
         />
       ) : null}
+
     </FieldTable>
   );
 }
