@@ -73,6 +73,13 @@ export function seedTransactions(): Transaction[] {
           "Beneficiary will get payment on the 61st day from the date of shipment by the discounting bank.",
         remarks: "If you accept our request, please quote your price by return.",
         lcCopyFileName: "LC-Draft-489600.pdf",
+        attachments: [
+          "Proforma-Invoice-BSCL-489600.pdf",
+          "IMP-Form-48960.pdf",
+          "Insurance-Cover-Note-BSCL.pdf",
+          "Board-Resolution-TK-Group.pdf",
+        ],
+
       },
       quotes: [
         {
