@@ -415,9 +415,10 @@ function QuoteCard({
       {role === "MFIS" ? (
         <FieldRow
           label="Attachment (MFIS only)"
-          value={(q.thirdBankMailFiles ?? []).join(", ") || "—"}
+          value={<AttachmentList files={q.thirdBankMailFiles ?? []} />}
         />
       ) : null}
+
     </FieldTable>
   );
 }
