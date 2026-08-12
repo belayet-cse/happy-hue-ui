@@ -528,8 +528,121 @@ export function seedTransactions(): Transaction[] {
         },
       ],
     },
+    ...multiLcBatch(),
   ];
 }
+
+/**
+ * One RM request raised with three LC value lines — the system splits it into
+ * three linked transactions, all waiting with MFIS.
+ */
+function multiLcBatch(): Transaction[] {
+  const base = {
+    ...emptyDetails,
+    dateOfIssue: "2026-08-11",
+    currency: "USD",
+    lcType: "UPAS" as const,
+    tenorOfDraft:
+      "180 days from the date of B/L, acceptance & negotiation; beneficiary will get payment at sight.",
+    confirmationInstruction: "REQUIRED" as const,
+    applicantName: "PADMA POLYMER INDUSTRIES LTD.",
+    applicantAddress: "Plot 41, BSCIC I/A, Narayanganj, Bangladesh",
+    beneficiaryName: "ORIENT CHEM RESOURCES PTE LTD.",
+    beneficiaryAddress: "12 Marina Boulevard #17-02, Singapore",
+    goodsDescription: "HDPE / LLDPE GRANULES",
+    hsCode: "3901.20.00",
+    countryOfOrigin: "Saudi Arabia / Thailand",
+    portOfLoading: "Jubail / Laem Chabang",
+    portOfDischarge: "Chittagong Sea Port, Bangladesh",
+    placeOfExpiry: "Singapore",
+    advisingBank: "DBS Bank, Singapore",
+    presentationPeriod: "21 days",
+    chargesBorneBy: "Confirmation & discounting charges are on applicant's account",
+    beneficiaryPaymentNote: "Beneficiary will get payment at sight.",
+    remarks:
+      "Three LC lines raised under a single request — please quote pricing for each LC.",
+  };
+
+  const lines = [
+    {
+      seq: 1006,
+      lcNumber: "MTBL/IMP/2026/60011",
+      amount: 312500,
+      tolerance: "+/- 5%",
+      latestShipmentDate: "2026-09-25",
+      expiryDate: "2026-10-16",
+      expectedPaymentDate: "2026-10-30",
+      lcCopyFileName: "LC-Draft-60011.pdf",
+      attachments: [
+        "Proforma-Invoice-60011.pdf",
+        "IMP-Form-60011.pdf",
+        "Insurance-Cover-Note-60011.pdf",
+      ],
+    },
+    {
+      seq: 1007,
+      lcNumber: "MTBL/IMP/2026/60012",
+      amount: 187400,
+      tolerance: "+/- 10%",
+      latestShipmentDate: "2026-10-10",
+      expiryDate: "2026-10-31",
+      expectedPaymentDate: "2026-11-14",
+      lcCopyFileName: "LC-Draft-60012.pdf",
+      attachments: ["Proforma-Invoice-60012.pdf", "IMP-Form-60012.pdf"],
+    },
+    {
+      seq: 1008,
+      lcNumber: "MTBL/IMP/2026/60013",
+      amount: 96800,
+      tolerance: "+/- 5%",
+      latestShipmentDate: "2026-10-20",
+      expiryDate: "2026-11-10",
+      expectedPaymentDate: "2026-11-24",
+      lcCopyFileName: "LC-Draft-60013.pdf",
+      attachments: [
+        "Proforma-Invoice-60013.pdf",
+        "IMP-Form-60013.pdf",
+        "Supplier-Credit-Note-60013.pdf",
+      ],
+    },
+  ];
+
+  return lines.map((l) => ({
+    id: `txn-${l.seq}`,
+    referenceNo: `TRTD-2026-00${l.seq}`,
+    requestType: "ADD_CONF_DISC" as const,
+    status: "SUBMITTED" as const,
+    createdAt: "2026-08-11T06:40:00.000Z",
+    updatedAt: "2026-08-11T06:40:00.000Z",
+    raisedByName: "Rakib Hasan (RM)",
+    branch: "Narayanganj Branch",
+    details: {
+      ...base,
+      lcNumber: l.lcNumber,
+      amount: l.amount,
+      tolerance: l.tolerance,
+      latestShipmentDate: l.latestShipmentDate,
+      expiryDate: l.expiryDate,
+      expectedPaymentDate: l.expectedPaymentDate,
+      lcCopyFileName: l.lcCopyFileName,
+      attachments: l.attachments,
+    },
+    quotes: [],
+    forwards: [],
+    queries: [],
+    history: [
+      {
+        id: `h-${l.seq}-1`,
+        at: "2026-08-11T06:40:00.000Z",
+        actorName: "Rakib Hasan (RM)",
+        actorRole: "RM" as const,
+        action: "Request submitted to MFIS",
+        statusAfter: "SUBMITTED" as const,
+      },
+    ],
+  }));
+}
+
 
 export function seedNotifications(): AppNotification[] {
   return [
