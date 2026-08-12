@@ -82,6 +82,16 @@ export interface PriceQuote {
   quotedAt: string;
   quotedBy: string;
   revision: number;
+  /** Option number when several bank prices are offered for the same transaction */
+  optionNo?: number | undefined;
+  /** Pricing bank, e.g. "KBC BANK BELGIUM" */
+  bankName?: string | undefined;
+  /** Headline pricing line, e.g. "SOFR PLUS 3.50%" */
+  pricingSummary?: string | undefined;
+  /** Price quote to MITS same as RM */
+  quoteToMitsSameAsRm?: boolean | undefined;
+  /** Third bank pricing mail attached by MFIS — visible to MFIS only */
+  thirdBankMailFiles?: string[] | undefined;
   confirmationRate: string;
   confirmationBasis: string;
   confirmationMinCharge: string;
@@ -99,6 +109,7 @@ export interface PriceQuote {
   validUntil: string;
   additionalConditions: string;
 }
+
 
 export interface ForwardRecord {
   forwardedAt: string;
@@ -161,7 +172,10 @@ export interface Transaction {
   history: HistoryEntry[];
   execution?: Execution | undefined;
   rejectionReason?: string | undefined;
+  /** Revision of the quote the RM accepted */
+  acceptedQuoteRevision?: number | undefined;
 }
+
 
 export interface AppNotification {
   id: string;

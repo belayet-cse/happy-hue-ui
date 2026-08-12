@@ -5,10 +5,10 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/trtd/AppShell";
 import { useGuard } from "@/components/trtd/Guard";
 import { FieldRow, FieldTable } from "@/components/trtd/FieldTable";
+import { PriceQuoteForm } from "@/components/trtd/PriceQuoteForm";
 import { StatusBadge } from "@/components/trtd/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -27,7 +27,6 @@ import {
   executeTransaction,
   forwardRequest,
   latestQuote,
-  offerPrice,
   openQuery,
   raiseQuery,
   recordForwardResponse,
@@ -192,7 +191,16 @@ function RequestDetailPage() {
                   </CardContent>
                 </Card>
               ) : (
-                [...txn.quotes].reverse().map((q) => <QuoteCard key={q.revision} q={q} />)
+                [...txn.quotes]
+                  .reverse()
+                  .map((q) => (
+                    <QuoteCard
+                      key={q.revision}
+                      q={q}
+                      role={session.role}
+                      accepted={txn.acceptedQuoteRevision === q.revision}
+                    />
+                  ))
               )}
             </TabsContent>
 
@@ -349,9 +357,26 @@ function RequestDetailPage() {
   );
 }
 
-function QuoteCard({ q }: { q: PriceQuote }) {
+function QuoteCard({
+  q,
+  role,
+  accepted,
+}: {
+  q: PriceQuote;
+  role: "RM" | "MFIS" | "MITS";
+  accepted?: boolean;
+}) {
+  const title = [
+    q.optionNo ? `Option ${String(q.optionNo).padStart(2, "0")}` : null,
+    q.bankName || "Price quote",
+    `revision ${q.revision}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
-    <FieldTable title={`Price quote — revision ${q.revision}`}>
+    <FieldTable title={accepted ? `${title} — accepted by RM` : title}>
+      <FieldRow label="Bank name" value={q.bankName || "—"} />
+      <FieldRow label="Pricing" value={q.pricingSummary || "—"} />
       <FieldRow label="Quoted by" value={`${q.quotedBy} · ${formatDateTime(q.quotedAt)}`} />
       <FieldRow label="Confirmation rate" value={q.confirmationRate} />
       <FieldRow label="Confirmation basis" value={q.confirmationBasis} />
@@ -376,7 +401,17 @@ function QuoteCard({ q }: { q: PriceQuote }) {
         label="Validity"
         value={`${q.validityDays} days · until ${formatDate(q.validUntil)}`}
       />
-      <FieldRow label="Additional conditions" value={q.additionalConditions} />
+      <FieldRow label="Additional condition" value={q.additionalConditions} />
+      <FieldRow
+        label="Quote to MITS"
+        value={q.quoteToMitsSameAsRm === false ? "Separate quote" : "Same as RM"}
+      />
+      {role === "MFIS" ? (
+        <FieldRow
+          label="Third bank pricing mail (MFIS only)"
+          value={(q.thirdBankMailFiles ?? []).join(", ") || "—"}
+        />
+      ) : null}
     </FieldTable>
   );
 }
@@ -467,7 +502,12 @@ function ActionPanel({
   quote: PriceQuote | undefined;
 }) {
   const [remarks, setRemarks] = useState("");
+  const [selected, setSelected] = useState<number | null>(null);
   const pending = openQuery(txn);
+  const latestBatch = quote
+    ? txn.quotes.filter((q) => q.quotedAt === quote.quotedAt)
+    : [];
+
 
   return (
     <Card>
@@ -486,6 +526,26 @@ function ActionPanel({
           <>
             {txn.status === "PRICE_OFFERED" && quote ? (
               <div className="space-y-2">
+                {latestBatch.length > 1 ? (
+                  <div className="space-y-2">
+                    <Label>Select the bank pricing to accept</Label>
+                    <Select
+                      value={String(selected ?? quote.revision)}
+                      onValueChange={(v) => setSelected(Number(v))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {latestBatch.map((q) => (
+                          <SelectItem key={q.revision} value={String(q.revision)}>
+                            {`Option ${String(q.optionNo ?? 1).padStart(2, "0")} · ${q.bankName || "Bank"} · ${q.pricingSummary || q.financingMargin}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
                 <Label>Remarks</Label>
                 <Textarea
                   rows={3}
@@ -496,13 +556,19 @@ function ActionPanel({
                 <div className="flex flex-wrap gap-2">
                   <Button
                     onClick={() => {
-                      acceptPrice(txn.id, session, remarks || "Pricing acceptable to client.");
+                      acceptPrice(
+                        txn.id,
+                        session,
+                        remarks || "Pricing acceptable to client.",
+                        selected ?? quote.revision,
+                      );
                       setRemarks("");
                       toast.success("Price accepted — MITS notified");
                     }}
                   >
                     Accept price
                   </Button>
+
                   <Button
                     variant="destructive"
                     onClick={() => {
@@ -594,25 +660,6 @@ function MitsExecuteForm({
   );
 }
 
-const EMPTY_QUOTE = {
-  confirmationRate: "",
-  confirmationBasis: "On LC value, per annum, payable in advance",
-  confirmationMinCharge: "USD 150.00",
-  financingBaseRate: "SOFR (term, matching tenor)",
-  financingMargin: "",
-  financingBasis: "Discount charged upfront on maturity value",
-  financingMinCharge: "USD 150.00",
-  issuingToBank: "",
-  maxDoorToDoorTenorDays: "180",
-  maxSingleLcValue: "",
-  reimbursementBank: "",
-  includeInMt700: true,
-  subjectToCreditApproval: true,
-  validityDays: "15",
-  validUntil: "",
-  additionalConditions: "",
-};
-
 function MfisActions({
   txn,
   session,
@@ -627,7 +674,6 @@ function MfisActions({
     channel: "THIRD_BANK" | "OBU";
     note: string;
   }>({ forwardedTo: "", channel: "THIRD_BANK", note: "" });
-  const [price, setPrice] = useState(EMPTY_QUOTE);
 
   const done = txn.status === "ACCEPTED" || txn.status === "EXECUTED" || txn.status === "COMPLETED";
   if (done) {
@@ -725,91 +771,7 @@ function MfisActions({
         </div>
       ) : null}
 
-      {mode === "PRICE" ? (
-        <div className="space-y-2">
-          <PriceField label="Confirmation rate" value={price.confirmationRate} onChange={(v) => setPrice({ ...price, confirmationRate: v })} placeholder="e.g. 1.20% p.a." />
-          <PriceField label="Confirmation basis" value={price.confirmationBasis} onChange={(v) => setPrice({ ...price, confirmationBasis: v })} />
-          <PriceField label="Confirmation minimum" value={price.confirmationMinCharge} onChange={(v) => setPrice({ ...price, confirmationMinCharge: v })} />
-          <PriceField label="Financing base rate" value={price.financingBaseRate} onChange={(v) => setPrice({ ...price, financingBaseRate: v })} />
-          <PriceField label="Financing margin" value={price.financingMargin} onChange={(v) => setPrice({ ...price, financingMargin: v })} placeholder="e.g. 2.10% p.a." />
-          <PriceField label="Financing basis" value={price.financingBasis} onChange={(v) => setPrice({ ...price, financingBasis: v })} />
-          <PriceField label="Financing minimum" value={price.financingMinCharge} onChange={(v) => setPrice({ ...price, financingMinCharge: v })} />
-          <PriceField label="Confirming / financing bank" value={price.issuingToBank} onChange={(v) => setPrice({ ...price, issuingToBank: v })} />
-          <PriceField label="Max door-to-door tenor (days)" value={price.maxDoorToDoorTenorDays} onChange={(v) => setPrice({ ...price, maxDoorToDoorTenorDays: v })} />
-          <PriceField label="Max single LC value" value={price.maxSingleLcValue} onChange={(v) => setPrice({ ...price, maxSingleLcValue: v })} placeholder="e.g. USD 5,000,000.00" />
-          <PriceField label="Reimbursement bank" value={price.reimbursementBank} onChange={(v) => setPrice({ ...price, reimbursementBank: v })} />
-          <PriceField label="Validity (days)" value={price.validityDays} onChange={(v) => setPrice({ ...price, validityDays: v })} />
-          <div className="space-y-1.5">
-            <Label className="text-xs">Valid until</Label>
-            <Input
-              type="date"
-              value={price.validUntil}
-              onChange={(e) => setPrice({ ...price, validUntil: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">Additional conditions</Label>
-            <Textarea
-              rows={3}
-              value={price.additionalConditions}
-              onChange={(e) => setPrice({ ...price, additionalConditions: e.target.value })}
-            />
-          </div>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={price.includeInMt700}
-              onCheckedChange={(c) => setPrice({ ...price, includeInMt700: c === true })}
-            />
-            Include confirmation instruction in MT700
-          </label>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={price.subjectToCreditApproval}
-              onCheckedChange={(c) => setPrice({ ...price, subjectToCreditApproval: c === true })}
-            />
-            Subject to counterparty credit approval
-          </label>
-          <Button
-            className="w-full"
-            onClick={() => {
-              if (!price.confirmationRate.trim() && !price.financingMargin.trim())
-                { toast.error("Enter a confirmation rate or financing margin"); return; }
-              offerPrice(txn.id, session, price);
-              setPrice(EMPTY_QUOTE);
-              toast.success("Price offered — RM notified");
-            }}
-          >
-            {txn.quotes.length ? "Offer revised price" : "Offer price"}
-          </Button>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function PriceField({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  const id = `p-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs">
-        {label}
-      </Label>
-      <Input
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-      />
+      {mode === "PRICE" ? <PriceQuoteForm txn={txn} session={session} />: null}
     </div>
   );
 }
