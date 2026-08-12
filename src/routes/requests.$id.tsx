@@ -199,9 +199,12 @@ function RequestDetailPage() {
                 <FieldRow
                   label="Documents attached"
                   value={
-                    [d.lcCopyFileName, ...(d.attachments ?? [])].filter(Boolean).join(", ")
+                    <AttachmentList
+                      files={[d.lcCopyFileName, ...(d.attachments ?? [])]}
+                    />
                   }
                 />
+
                 <FieldRow label="Beneficiary payment note" value={d.beneficiaryPaymentNote} />
                 <FieldRow label="Remarks" value={d.remarks} />
                 {txn.rejectionReason ? (
