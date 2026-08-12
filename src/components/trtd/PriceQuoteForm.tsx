@@ -3,7 +3,6 @@ import { Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -61,8 +60,7 @@ export function PriceQuoteForm({
     for (let i = 0; i < options.length; i++) {
       const o = options[i]!;
       if (!o.bankName?.trim()) return `${optionLabel(i)}: bank name is required`;
-      if (!o.pricingSummary?.trim() && !o.confirmationRate.trim() && !o.financingMargin.trim())
-        return `${optionLabel(i)}: enter the pricing`;
+      if (!o.pricingSummary?.trim()) return `${optionLabel(i)}: enter the pricing`;
       if ((o.additionalConditions || "").trim().split(/\s+/).filter(Boolean).length > 300)
         return `${optionLabel(i)}: additional condition is limited to 300 words`;
     }
@@ -125,31 +123,6 @@ export function PriceQuoteForm({
             placeholder="e.g. SOFR PLUS 3.50%"
           />
 
-          <ThirdBankMail
-            files={o.thirdBankMailFiles ?? []}
-            onChange={(files) => patch(i, { thirdBankMailFiles: files })}
-          />
-
-          <Field idx={i} label="Confirmation rate" value={o.confirmationRate} onChange={(v) => patch(i, { confirmationRate: v })} placeholder="e.g. 1.20% p.a." />
-          <Field idx={i} label="Confirmation basis" value={o.confirmationBasis} onChange={(v) => patch(i, { confirmationBasis: v })} />
-          <Field idx={i} label="Confirmation minimum" value={o.confirmationMinCharge} onChange={(v) => patch(i, { confirmationMinCharge: v })} />
-          <Field idx={i} label="Financing base rate" value={o.financingBaseRate} onChange={(v) => patch(i, { financingBaseRate: v })} />
-          <Field idx={i} label="Financing margin" value={o.financingMargin} onChange={(v) => patch(i, { financingMargin: v })} placeholder="e.g. 2.10% p.a." />
-          <Field idx={i} label="Financing basis" value={o.financingBasis} onChange={(v) => patch(i, { financingBasis: v })} />
-          <Field idx={i} label="Financing minimum" value={o.financingMinCharge} onChange={(v) => patch(i, { financingMinCharge: v })} />
-          <Field idx={i} label="Confirming / financing bank" value={o.issuingToBank} onChange={(v) => patch(i, { issuingToBank: v })} />
-          <Field idx={i} label="Max door-to-door tenor (days)" value={o.maxDoorToDoorTenorDays} onChange={(v) => patch(i, { maxDoorToDoorTenorDays: v })} />
-          <Field idx={i} label="Max single LC value" value={o.maxSingleLcValue} onChange={(v) => patch(i, { maxSingleLcValue: v })} placeholder="e.g. USD 5,000,000.00" />
-          <Field idx={i} label="Reimbursement bank" value={o.reimbursementBank} onChange={(v) => patch(i, { reimbursementBank: v })} />
-          <Field idx={i} label="Validity (days)" value={o.validityDays} onChange={(v) => patch(i, { validityDays: v })} />
-          <div className="space-y-1.5">
-            <Label className="text-xs">Valid until</Label>
-            <Input
-              type="date"
-              value={o.validUntil}
-              onChange={(e) => patch(i, { validUntil: e.target.value })}
-            />
-          </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Additional condition (max 300 words)</Label>
             <Textarea
@@ -158,27 +131,11 @@ export function PriceQuoteForm({
               onChange={(e) => patch(i, { additionalConditions: e.target.value })}
             />
           </div>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={o.includeInMt700}
-              onCheckedChange={(c) => patch(i, { includeInMt700: c === true })}
-            />
-            Include confirmation instruction in MT700
-          </label>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={o.subjectToCreditApproval}
-              onCheckedChange={(c) => patch(i, { subjectToCreditApproval: c === true })}
-            />
-            Subject to counterparty credit approval
-          </label>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={o.quoteToMitsSameAsRm !== false}
-              onCheckedChange={(c) => patch(i, { quoteToMitsSameAsRm: c === true })}
-            />
-            Price quote to MITS: same as RM
-          </label>
+
+          <ThirdBankMail
+            files={o.thirdBankMailFiles ?? []}
+            onChange={(files) => patch(i, { thirdBankMailFiles: files })}
+          />
         </div>
       ))}
 
@@ -218,17 +175,10 @@ export function PriceQuoteForm({
                 </div>
                 <Row label="Bank name" value={o.bankName ?? ""} />
                 <Row label="Pricing" value={o.pricingSummary ?? ""} />
-                <Row label="Confirmation rate" value={o.confirmationRate} />
-                <Row label="Financing" value={`${o.financingBaseRate} ${o.financingMargin}`.trim()} />
-                <Row label="Validity" value={`${o.validityDays} days${o.validUntil ? ` · until ${o.validUntil}` : ""}`} />
-                <Row label="Additional condition" value={o.additionalConditions} />
+                <Row label="Additional condition" value={o.additionalConditions || "—"} />
                 <Row
-                  label="Third bank pricing mail"
+                  label="Attachment"
                   value={(o.thirdBankMailFiles ?? []).join(", ") || "—"}
-                />
-                <Row
-                  label="Quote to MITS"
-                  value={o.quoteToMitsSameAsRm !== false ? "Same as RM" : "Separate"}
                 />
               </dl>
             ))}
@@ -255,9 +205,7 @@ function ThirdBankMail({
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs">
-        Third bank pricing mail (visible to MFIS only)
-      </Label>
+      <Label className="text-xs">Attachment (e.g. third bank pricing mail)</Label>
       <div className="flex gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()}>
           <Upload className="size-3.5" /> Attach mail / file
