@@ -220,7 +220,7 @@ function RequestDetailPage() {
                       {thread.messages.map((m) => (
                         <div key={m.id} className="rounded-sm border border-border bg-surface p-3">
                           <p className="text-xs font-semibold text-foreground">
-                            {m.byName} ({m.byRole})
+                            {m.byName.replace(/\s*\((?:RM|MFIS|MITS)\)\s*$/, "")} ({m.byRole})
                             <span className="ml-2 font-normal text-muted-foreground">
                               {formatDateTime(m.at)}
                             </span>
@@ -317,7 +317,8 @@ function RequestDetailPage() {
                     <span className="absolute top-1.5 -left-[1.4rem] size-2 rounded-full bg-primary" />
                     <p className="text-sm font-medium text-foreground">{h.action}</p>
                     <p className="text-xs text-muted-foreground">
-                      {h.actorName} ({h.actorRole}) · {formatDateTime(h.at)}
+                      {h.actorName.replace(/\s*\((?:RM|MFIS|MITS)\)\s*$/, "")} (
+                      {h.actorRole}) · {formatDateTime(h.at)}
                     </p>
                     {h.remarks ? (
                       <p className="mt-1 rounded-sm bg-surface px-2 py-1 text-xs whitespace-pre-line text-muted-foreground">
