@@ -378,37 +378,10 @@ function QuoteCard({
       <FieldRow label="Bank name" value={q.bankName || "—"} />
       <FieldRow label="Pricing" value={q.pricingSummary || "—"} />
       <FieldRow label="Quoted by" value={`${q.quotedBy} · ${formatDateTime(q.quotedAt)}`} />
-      <FieldRow label="Confirmation rate" value={q.confirmationRate} />
-      <FieldRow label="Confirmation basis" value={q.confirmationBasis} />
-      <FieldRow label="Confirmation minimum" value={q.confirmationMinCharge} />
-      <FieldRow label="Financing base rate" value={q.financingBaseRate} />
-      <FieldRow label="Financing margin" value={q.financingMargin} />
-      <FieldRow label="Financing basis" value={q.financingBasis} />
-      <FieldRow label="Financing minimum" value={q.financingMinCharge} />
-      <FieldRow label="Confirming / financing bank" value={q.issuingToBank} />
-      <FieldRow label="Max door-to-door tenor" value={`${q.maxDoorToDoorTenorDays} days`} />
-      <FieldRow label="Max single LC value" value={q.maxSingleLcValue} />
-      <FieldRow label="Reimbursement bank" value={q.reimbursementBank} />
-      <FieldRow
-        label="Include in MT700"
-        value={q.includeInMt700 ? "Yes — field 78 instruction required" : "No"}
-      />
-      <FieldRow
-        label="Subject to credit approval"
-        value={q.subjectToCreditApproval ? "Yes" : "No"}
-      />
-      <FieldRow
-        label="Validity"
-        value={`${q.validityDays} days · until ${formatDate(q.validUntil)}`}
-      />
-      <FieldRow label="Additional condition" value={q.additionalConditions} />
-      <FieldRow
-        label="Quote to MITS"
-        value={q.quoteToMitsSameAsRm === false ? "Separate quote" : "Same as RM"}
-      />
+      <FieldRow label="Additional condition" value={q.additionalConditions || "—"} />
       {role === "MFIS" ? (
         <FieldRow
-          label="Third bank pricing mail (MFIS only)"
+          label="Attachment (MFIS only)"
           value={(q.thirdBankMailFiles ?? []).join(", ") || "—"}
         />
       ) : null}

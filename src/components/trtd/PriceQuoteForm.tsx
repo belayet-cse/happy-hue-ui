@@ -3,7 +3,6 @@ import { Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -61,8 +60,7 @@ export function PriceQuoteForm({
     for (let i = 0; i < options.length; i++) {
       const o = options[i]!;
       if (!o.bankName?.trim()) return `${optionLabel(i)}: bank name is required`;
-      if (!o.pricingSummary?.trim() && !o.confirmationRate.trim() && !o.financingMargin.trim())
-        return `${optionLabel(i)}: enter the pricing`;
+      if (!o.pricingSummary?.trim()) return `${optionLabel(i)}: enter the pricing`;
       if ((o.additionalConditions || "").trim().split(/\s+/).filter(Boolean).length > 300)
         return `${optionLabel(i)}: additional condition is limited to 300 words`;
     }
@@ -177,17 +175,10 @@ export function PriceQuoteForm({
                 </div>
                 <Row label="Bank name" value={o.bankName ?? ""} />
                 <Row label="Pricing" value={o.pricingSummary ?? ""} />
-                <Row label="Confirmation rate" value={o.confirmationRate} />
-                <Row label="Financing" value={`${o.financingBaseRate} ${o.financingMargin}`.trim()} />
-                <Row label="Validity" value={`${o.validityDays} days${o.validUntil ? ` · until ${o.validUntil}` : ""}`} />
-                <Row label="Additional condition" value={o.additionalConditions} />
+                <Row label="Additional condition" value={o.additionalConditions || "—"} />
                 <Row
-                  label="Third bank pricing mail"
+                  label="Attachment"
                   value={(o.thirdBankMailFiles ?? []).join(", ") || "—"}
-                />
-                <Row
-                  label="Quote to MITS"
-                  value={o.quoteToMitsSameAsRm !== false ? "Same as RM" : "Separate"}
                 />
               </dl>
             ))}
@@ -214,9 +205,7 @@ function ThirdBankMail({
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs">
-        Third bank pricing mail (visible to MFIS only)
-      </Label>
+      <Label className="text-xs">Attachment (e.g. third bank pricing mail)</Label>
       <div className="flex gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()}>
           <Upload className="size-3.5" /> Attach mail / file
