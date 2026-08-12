@@ -69,7 +69,7 @@ Institutional banking UI: MTB-leaning deep green/navy primary with amber accent,
 ## Technical notes
 
 - TanStack Start file routes: `/` (redirects to login or dashboard), `/login`, `/dashboard`, `/requests/new`, `/requests`, `/requests/$id`, `/notifications`. Each content route gets its own `head()` metadata.
-- Mock domain layer in `src/lib/trtd/`: types + status enum, localStorage-backed store with seeded demo transactions across every status, action functions (submit, raiseQuery, replyQuery, forward, recordForwardResponse, setPrice, accept, reject, execute), history appender, notification generator. Named to match the eventual TRTD backend contract so the ASP.NET/Oracle wiring is a drop-in later.
+- Mock domain layer in `src/lib/trtd/`: types + status enum, localStorage-backed store seeded with the two real sample deals (USD 489,600.00 add confirmation & discounting; USD 115,000.00 discounting) plus extra rows covering every status, action functions (submit, raiseQuery, replyQuery, forward, recordForwardResponse, setPrice, accept, reject, execute), history appender, notification generator. Named to match the eventual TRTD backend contract so the ASP.NET/Oracle wiring is a drop-in later.
 - Role-based route guard reading the mock session; unauthorized actions hidden, not just disabled.
 - shadcn components (table, dialog, tabs, form, badge, sonner toasts) with `<Toaster />` mounted in `__root.tsx`.
 - No Lovable Cloud, no server functions, no database in this phase.
