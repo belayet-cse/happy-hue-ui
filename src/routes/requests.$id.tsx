@@ -134,12 +134,14 @@ function RequestDetailPage() {
             </TabsList>
 
             <TabsContent value="details" className="space-y-4">
-              <FieldTable title="LC particulars">
-                <FieldRow label="LC number" value={d.lcNumber} />
-                <FieldRow label="Date of issue" value={formatDate(d.dateOfIssue)} />
-                <FieldRow label="LC value" value={formatMoney(d.currency, d.amount)} />
+              <FieldTable title="Transaction">
+                <FieldRow label="System transaction reference" value={txn.referenceNo} />
+                <FieldRow label="Branch / unit" value={txn.branch} />
+                <FieldRow
+                  label="Transaction type"
+                  value={REQUEST_TYPE_LABEL[txn.requestType]}
+                />
                 <FieldRow label="LC type" value={LC_TYPE_LABEL[d.lcType]} />
-                <FieldRow label="Tenor of draft" value={d.tenorOfDraft} />
                 <FieldRow
                   label="Confirmation instruction"
                   value={
@@ -148,33 +150,58 @@ function RequestDetailPage() {
                       : "Confirmation not required"
                   }
                 />
-                <FieldRow label="Advising / nominated bank" value={d.advisingBank} />
-                <FieldRow label="LC copy" value={d.lcCopyFileName} />
+                <FieldRow label="Raised by" value={`${txn.raisedByName} · RM`} />
+                <FieldRow label="Requested on" value={formatDateTime(txn.createdAt)} />
               </FieldTable>
 
-              <FieldTable title="Parties">
-                <FieldRow label="Applicant" value={d.applicantName} />
+              <FieldTable title="Applicant & beneficiary">
+                <FieldRow label="Applicant full name" value={d.applicantName} />
                 <FieldRow label="Applicant address" value={d.applicantAddress} />
-                <FieldRow label="Beneficiary" value={d.beneficiaryName} />
+                <FieldRow label="Beneficiary full name" value={d.beneficiaryName} />
                 <FieldRow label="Beneficiary address" value={d.beneficiaryAddress} />
               </FieldTable>
 
-              <FieldTable title="Goods & shipment">
-                <FieldRow label="Description of goods" value={d.goodsDescription} />
-                <FieldRow label="HS code" value={d.hsCode} />
-                <FieldRow label="Country of origin" value={d.countryOfOrigin} />
-                <FieldRow label="Port of loading" value={d.portOfLoading} />
-                <FieldRow label="Port of discharge" value={d.portOfDischarge} />
-                <FieldRow label="Latest shipment date" value={formatDate(d.latestShipmentDate)} />
+              <FieldTable title="LC value & schedule">
+                <FieldRow label="LC value & currency" value={formatMoney(d.currency, d.amount)} />
+                <FieldRow label="Tolerance (+/-)" value={d.tolerance} />
+                <FieldRow label="LC number" value={d.lcNumber} />
+                <FieldRow label="Date of issue" value={formatDate(d.dateOfIssue)} />
                 <FieldRow
-                  label="Expiry"
+                  label="Latest date of shipment"
+                  value={formatDate(d.latestShipmentDate)}
+                />
+                <FieldRow
+                  label="Expiry date of LC"
                   value={`${formatDate(d.expiryDate)}${d.placeOfExpiry ? ` at ${d.placeOfExpiry}` : ""}`}
                 />
-                <FieldRow label="Presentation period" value={d.presentationPeriod} />
-                <FieldRow label="Charges borne by" value={d.chargesBorneBy} />
+                <FieldRow
+                  label="Expected payment date"
+                  value={d.expectedPaymentDate ? formatDate(d.expectedPaymentDate) : ""}
+                />
+                <FieldRow label="Advising / nominated bank" value={d.advisingBank} />
+                <FieldRow label="Period for presentation" value={d.presentationPeriod} />
               </FieldTable>
 
-              <FieldTable title="Notes">
+              <FieldTable title="Tenor of draft">
+                <FieldRow label="Tenor of draft" value={d.tenorOfDraft} />
+              </FieldTable>
+
+              <FieldTable title="Goods & shipment">
+                <FieldRow label="Description of item" value={d.goodsDescription} />
+                <FieldRow label="HS code" value={d.hsCode} />
+                <FieldRow label="Country of origin" value={d.countryOfOrigin} />
+                <FieldRow label="Shipment from" value={d.portOfLoading} />
+                <FieldRow label="Shipment to" value={d.portOfDischarge} />
+              </FieldTable>
+
+              <FieldTable title="Charges, documents & remarks">
+                <FieldRow label="Charges to be borne" value={d.chargesBorneBy} />
+                <FieldRow
+                  label="Documents attached"
+                  value={
+                    [d.lcCopyFileName, ...(d.attachments ?? [])].filter(Boolean).join(", ")
+                  }
+                />
                 <FieldRow label="Beneficiary payment note" value={d.beneficiaryPaymentNote} />
                 <FieldRow label="Remarks" value={d.remarks} />
                 {txn.rejectionReason ? (
@@ -182,6 +209,7 @@ function RequestDetailPage() {
                 ) : null}
               </FieldTable>
             </TabsContent>
+
 
             <TabsContent value="pricing" className="space-y-4">
               {txn.quotes.length === 0 ? (
