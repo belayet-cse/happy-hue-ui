@@ -252,6 +252,9 @@ export function seedTransactions(): Transaction[] {
         advisingBank: "Standard Chartered Bank, Hong Kong",
         chargesBorneBy: "Applicant's account",
         remarks: "Confirmation required at the earliest.",
+        lcCopyFileName: "LC-Draft-220450.pdf",
+        attachments: ["Proforma-Invoice-Texchem.pdf", "IMP-Form-22045.pdf"],
+
       },
       quotes: [],
       forwards: [],
