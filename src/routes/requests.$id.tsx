@@ -3,7 +3,9 @@ import { useState } from "react";
 import { ArrowLeft, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/trtd/AppShell";
+import { AttachmentList } from "@/components/trtd/Attachments";
 import { useGuard } from "@/components/trtd/Guard";
+
 import { FieldRow, FieldTable } from "@/components/trtd/FieldTable";
 import { PriceQuoteForm } from "@/components/trtd/PriceQuoteForm";
 import { StatusBadge } from "@/components/trtd/StatusBadge";
