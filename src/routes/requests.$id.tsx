@@ -573,10 +573,10 @@ function MitsExecuteForm({
   const [remarks, setRemarks] = useState("");
   return (
     <div className="space-y-2">
-      <Label>Core banking / SWIFT reference</Label>
-      <Input value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. MT700-2026-0142" />
-      <Label>Execution remarks</Label>
-      <Textarea rows={3} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+      <Label htmlFor="exec-ref">Core banking / SWIFT reference</Label>
+      <Input id="exec-ref" value={ref} onChange={(e) => setRef(e.target.value)} placeholder="e.g. MT700-2026-0142" />
+      <Label htmlFor="exec-remarks">Execution remarks</Label>
+      <Textarea id="exec-remarks" rows={3} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
       <Button
         onClick={() => {
           if (!ref.trim()) { toast.error("Enter the execution reference"); return; }
@@ -796,10 +796,18 @@ function PriceField({
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
+  const id = `p-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs">{label}</Label>
-      <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+      <Label htmlFor={id} className="text-xs">
+        {label}
+      </Label>
+      <Input
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
     </div>
   );
 }

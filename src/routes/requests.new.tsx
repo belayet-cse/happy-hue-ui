@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/trtd/AppShell";
 import { PageHeader, useGuard } from "@/components/trtd/Guard";
@@ -378,13 +378,16 @@ function Field({
   children: React.ReactNode;
   className?: string;
 }) {
+  const id = `f-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div className={`space-y-2 ${className ?? ""}`}>
-      <Label>
+      <Label htmlFor={id}>
         {label}
         {required ? <span className="ml-0.5 text-destructive">*</span> : null}
       </Label>
-      {children}
+      {React.isValidElement(children)
+        ? React.cloneElement(children as React.ReactElement<{ id?: string }>, { id })
+        : children}
     </div>
   );
 }
