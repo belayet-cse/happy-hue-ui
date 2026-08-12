@@ -198,6 +198,12 @@ export function seedTransactions(): Transaction[] {
         beneficiaryPaymentNote: "Beneficiary will get payment at sight.",
         remarks: "Please quote your price by return.",
         lcCopyFileName: "LC-115000.pdf",
+        attachments: [
+          "Proforma-Invoice-Panmark-115000.pdf",
+          "IMP-Form-11500.pdf",
+          "Panmark-Beneficiary-Bank-Details.pdf",
+        ],
+
       },
       quotes: [],
       forwards: [],
