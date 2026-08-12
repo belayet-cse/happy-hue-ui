@@ -48,6 +48,13 @@ export interface RequestDetails {
   dateOfIssue: string;
   currency: string;
   amount: number;
+  /** LC value tolerance, e.g. "+/- 5%" */
+  tolerance?: string | undefined;
+  /** Expected payment date (not before LC expiry) */
+  expectedPaymentDate?: string | undefined;
+  /** Extra attached document names beyond the LC copy */
+  attachments?: string[] | undefined;
+
   lcType: LcType;
   tenorOfDraft: string;
   confirmationInstruction: "REQUIRED" | "NOT_REQUIRED";
