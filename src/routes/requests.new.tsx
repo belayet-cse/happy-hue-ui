@@ -26,7 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { formatMoney } from "@/lib/trtd/format";
-import { createRequest, useTransactions } from "@/lib/trtd/store";
+import { createRequest, useTrtdStore } from "@/lib/trtd/store";
 import type { LcType, RequestDetails, RequestType } from "@/lib/trtd/types";
 
 export const Route = createFileRoute("/requests/new")({
@@ -161,7 +161,7 @@ const emptyLine = (): Line => ({
 function NewRequestPage() {
   const session = useGuard();
   const navigate = useNavigate();
-  const transactions = useTransactions();
+  const { transactions } = useTrtdStore();
 
   const [txnTypeKey, setTxnTypeKey] = useState<TxnTypeKey>("CONF_SIGHT");
   const cfg = TXN_TYPES[txnTypeKey];
@@ -207,7 +207,11 @@ function NewRequestPage() {
   const itemBook = useMemo(
     () =>
       Array.from(
-        new Set(transactions.map((t) => t.details.goodsDescription).filter(Boolean)),
+        new Set(
+          transactions
+            .map((t) => t.details.goodsDescription)
+            .filter((x): x is string => Boolean(x)),
+        ),
       ),
     [transactions],
   );
