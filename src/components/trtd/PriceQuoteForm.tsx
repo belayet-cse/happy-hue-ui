@@ -125,31 +125,6 @@ export function PriceQuoteForm({
             placeholder="e.g. SOFR PLUS 3.50%"
           />
 
-          <ThirdBankMail
-            files={o.thirdBankMailFiles ?? []}
-            onChange={(files) => patch(i, { thirdBankMailFiles: files })}
-          />
-
-          <Field idx={i} label="Confirmation rate" value={o.confirmationRate} onChange={(v) => patch(i, { confirmationRate: v })} placeholder="e.g. 1.20% p.a." />
-          <Field idx={i} label="Confirmation basis" value={o.confirmationBasis} onChange={(v) => patch(i, { confirmationBasis: v })} />
-          <Field idx={i} label="Confirmation minimum" value={o.confirmationMinCharge} onChange={(v) => patch(i, { confirmationMinCharge: v })} />
-          <Field idx={i} label="Financing base rate" value={o.financingBaseRate} onChange={(v) => patch(i, { financingBaseRate: v })} />
-          <Field idx={i} label="Financing margin" value={o.financingMargin} onChange={(v) => patch(i, { financingMargin: v })} placeholder="e.g. 2.10% p.a." />
-          <Field idx={i} label="Financing basis" value={o.financingBasis} onChange={(v) => patch(i, { financingBasis: v })} />
-          <Field idx={i} label="Financing minimum" value={o.financingMinCharge} onChange={(v) => patch(i, { financingMinCharge: v })} />
-          <Field idx={i} label="Confirming / financing bank" value={o.issuingToBank} onChange={(v) => patch(i, { issuingToBank: v })} />
-          <Field idx={i} label="Max door-to-door tenor (days)" value={o.maxDoorToDoorTenorDays} onChange={(v) => patch(i, { maxDoorToDoorTenorDays: v })} />
-          <Field idx={i} label="Max single LC value" value={o.maxSingleLcValue} onChange={(v) => patch(i, { maxSingleLcValue: v })} placeholder="e.g. USD 5,000,000.00" />
-          <Field idx={i} label="Reimbursement bank" value={o.reimbursementBank} onChange={(v) => patch(i, { reimbursementBank: v })} />
-          <Field idx={i} label="Validity (days)" value={o.validityDays} onChange={(v) => patch(i, { validityDays: v })} />
-          <div className="space-y-1.5">
-            <Label className="text-xs">Valid until</Label>
-            <Input
-              type="date"
-              value={o.validUntil}
-              onChange={(e) => patch(i, { validUntil: e.target.value })}
-            />
-          </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Additional condition (max 300 words)</Label>
             <Textarea
@@ -158,27 +133,11 @@ export function PriceQuoteForm({
               onChange={(e) => patch(i, { additionalConditions: e.target.value })}
             />
           </div>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={o.includeInMt700}
-              onCheckedChange={(c) => patch(i, { includeInMt700: c === true })}
-            />
-            Include confirmation instruction in MT700
-          </label>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={o.subjectToCreditApproval}
-              onCheckedChange={(c) => patch(i, { subjectToCreditApproval: c === true })}
-            />
-            Subject to counterparty credit approval
-          </label>
-          <label className="flex items-center gap-2 text-xs text-foreground">
-            <Checkbox
-              checked={o.quoteToMitsSameAsRm !== false}
-              onCheckedChange={(c) => patch(i, { quoteToMitsSameAsRm: c === true })}
-            />
-            Price quote to MITS: same as RM
-          </label>
+
+          <ThirdBankMail
+            files={o.thirdBankMailFiles ?? []}
+            onChange={(files) => patch(i, { thirdBankMailFiles: files })}
+          />
         </div>
       ))}
 
