@@ -86,7 +86,12 @@ export function seedTransactions(): Transaction[] {
           quotedAt: "2026-08-06T09:10:00.000Z",
           quotedBy: "Tanvir Ahmed (MFIS)",
           revision: 1,
+          optionNo: 1,
+          bankName: "STANDARD CHARTERED BANK, SINGAPORE",
+          pricingSummary: "Confirmation 2.40% p.a. + Financing SOFR PLUS 2.40% p.a.",
+          thirdBankMailFiles: ["SCB-Singapore-pricing-mail.msg", "SCB-term-sheet.pdf"],
           confirmationRate: "2.40",
+
           confirmationBasis:
             "p.a. on LC value (including tolerance, if any) from the date of confirmation till financing",
           confirmationMinCharge: "USD 500",
