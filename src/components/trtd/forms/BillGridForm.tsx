@@ -81,12 +81,16 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
   const [remarks, setRemarks] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  const withExtension = mode === "MATURITY_EXT" || mode === "OTHER_BANK";
+  const total = rows.reduce((s, r) => s + Number(r.billAmount || 0), 0);
+  const totalCurrency = rows[0]?.currency ?? "USD";
+
   const setRow = (i: number, patch: Partial<BillRow>) =>
     setRows((prev) =>
       prev.map((r, idx) => {
         if (idx !== i) return r;
         const next = { ...r, ...patch };
-        if (mode === "MATURITY_EXT")
+        if (withExtension)
           next.newMaturityDate = addDays(next.maturityDate, Number(next.extensionDays));
         return next;
       }),
@@ -99,7 +103,11 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
       if (!r.applicantName.trim()) return `${no}: applicant name is required`;
       if (!r.billAmount) return `${no}: bill amount is required`;
       if (!r.maturityDate) return `${no}: maturity date is required`;
-      if (mode === "MATURITY_EXT" && !Number(r.extensionDays))
+      if (mode === "OTHER_BANK" && !r.billReference.trim())
+        return `${no}: bill reference is required`;
+      if (mode === "OTHER_BANK" && !r.discountingBankName.trim())
+        return `${no}: discounting bank name is required`;
+      if (withExtension && !Number(r.extensionDays))
         return `${no}: extension days are required`;
     }
     return null;
@@ -110,12 +118,14 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
     if (err) return void toast.error(err);
 
     const first = rows[0]!;
-    const total = rows.reduce((s, r) => s + Number(r.billAmount || 0), 0);
 
     const id = createRequest({
-      requestType: mode === "REFINANCE" ? "REFINANCE" : "MATURITY_EXT",
+      requestType: mode === "MATURITY_EXT" ? "MATURITY_EXT" : "REFINANCE",
       module: "IMPORT",
-      subDivision: "1.1 MTB Transaction Request",
+      subDivision:
+        mode === "OTHER_BANK"
+          ? "Other Bank's Transaction Request"
+          : "MTB Transaction Request",
       actor: session,
       details: {
         ...blankDetails(),
@@ -127,12 +137,15 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
         tenorOfDraft:
           mode === "REFINANCE"
             ? "Refinance of accepted bills under MTB LC"
-            : "Extension of maturity of accepted bills under MTB LC",
+            : mode === "OTHER_BANK"
+              ? "Refinance of bills under an LC issued by another bank"
+              : "Extension of maturity of accepted bills under MTB LC",
         attachments: documents,
         lcCopyFileName: documents[0] ?? "",
         remarks,
       },
     });
+
 
     setPreviewOpen(false);
     toast.success(copy.success);
