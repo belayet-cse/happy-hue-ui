@@ -60,7 +60,7 @@ function MtbFormPage() {
   if (session.role !== "RM") {
     return (
       <AppShell>
-        <PageHeader title={meta.title} description={`${meta.code} — MTB Transaction Request`} />
+        <PageHeader title={meta.title} description="Import → MTB Transaction Request" />
         <Card>
           <CardContent className="pt-6 text-sm text-muted-foreground">
             Only the RM can raise a transaction request. Your desk sees submitted requests
