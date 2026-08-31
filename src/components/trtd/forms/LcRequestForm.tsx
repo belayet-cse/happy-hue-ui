@@ -395,11 +395,11 @@ export function LcRequestForm({
         </div>
       </Section>
 
-      <Section title="Transaction details" className="space-y-5">
+      <Section title="LC details" className="space-y-5">
         <p className="text-xs text-muted-foreground">
           LC value, tolerance, tenor, goods, origin, shipment and expiry, ports, advise
-          through bank and charges are captured together. Add another detail block for each
-          additional transaction of the same beneficiary — each block gets its own system
+          through bank and charges are captured together. Add another LC details block for
+          each additional LC of the same beneficiary — each block gets its own system
           transaction reference.
         </p>
 
@@ -407,7 +407,7 @@ export function LcRequestForm({
           <div key={i} className="space-y-4 rounded-md border border-border p-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">
-                Transaction {String(i + 1).padStart(2, "0")}
+                LC {String(i + 1).padStart(2, "0")} details
               </p>
               <Button
                 type="button"
