@@ -75,7 +75,7 @@ function MtbFormPage() {
     <AppShell>
       <PageHeader
         title={meta.title}
-        description={`${meta.code} — Import → MTB Transaction Request`}
+        description="Import → MTB Transaction Request"
       />
       {key === "lc-confirmation" ? (
         <LcRequestForm session={session} variant="CONFIRMATION" />
