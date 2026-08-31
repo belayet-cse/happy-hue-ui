@@ -30,7 +30,7 @@ import { formatMoney } from "@/lib/trtd/format";
 import { createRequest } from "@/lib/trtd/store";
 import { blankDetails, type BillRow, type Session } from "@/lib/trtd/types";
 
-type Mode = "REFINANCE" | "MATURITY_EXT";
+type Mode = "REFINANCE" | "MATURITY_EXT" | "OTHER_BANK";
 
 const COPY: Record<Mode, { title: string; hint: string; success: string }> = {
   REFINANCE: {
@@ -43,7 +43,13 @@ const COPY: Record<Mode, { title: string; hint: string; success: string }> = {
     hint: "Add one row per bill. Enter the extension in days — the new maturity date is calculated automatically.",
     success: "Maturity extension request submitted to FI (MFIS)",
   },
+  OTHER_BANK: {
+    title: "Bills for refinance — other bank LC",
+    hint: "All bill data is keyed in because the LC is issued by another bank. Add one row per bill; the new maturity date is calculated from the maturity date and extension days.",
+    success: "Other bank's transaction request submitted to FI (MFIS)",
+  },
 };
+
 
 const emptyRow = (): BillRow => ({
   lcNumber: "",
