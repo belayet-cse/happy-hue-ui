@@ -735,6 +735,9 @@ export function LcRequestForm({
                 Transaction
               </p>
               <PreviewRow label="Request type" value={cfg.label} />
+              {isOtherBank ? (
+                <PreviewRow label="Issuing bank" value={issuingBank} />
+              ) : null}
               <PreviewRow label="LC number" value={lcNumber || "—"} />
               <PreviewRow label="Date of issue" value={dateOfIssue || "—"} />
             </div>
