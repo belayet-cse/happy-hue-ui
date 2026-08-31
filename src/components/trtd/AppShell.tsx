@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Ship,
 } from "lucide-react";
+import { MTB_FORMS, type MtbFormKey } from "@/lib/trtd/forms";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -48,11 +49,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mine = notifications.filter((n) => n.toRole === session.role);
   const unread = mine.filter((n) => !n.read);
 
+type NavChild = {
+    to: string;
+    label: string;
+    params?: Record<string, string>;
+    children?: NavChild[];
+  };
+
+  const mtbFormLinks: NavChild[] = (Object.keys(MTB_FORMS) as MtbFormKey[]).map(
+    (key) => ({
+      to: `/import/mtb/${key}`,
+      label: MTB_FORMS[key].title,
+    }),
+  );
+
   const nav: {
     to: string;
     label: string;
     icon: typeof Files;
-    children?: { to: string; label: string; params?: Record<string, string> }[];
+    children?: NavChild[];
   }[] = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     {
@@ -60,9 +75,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       label: "Import",
       icon: Ship,
       children: [
-        { to: "/import/mtb", label: "1.1 MTB Transaction Request" },
-        { to: "/import/other-bank", label: "1.2 Other Bank Transaction Request" },
-        { to: "/import/non-designated", label: "1.3 Non-Designated Presentation" },
+        {
+          to: "/import/mtb",
+          label: "MTB Transaction Request",
+          children: mtbFormLinks,
+        },
+        { to: "/import/other-bank", label: "Other Bank Transaction Request" },
+        { to: "/import/non-designated", label: "Non-Designated Presentation" },
       ],
     },
     {
@@ -72,11 +91,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       children: [
         {
           to: "/export/advising-confirmation",
-          label: "2.1 Export LC Advising & Confirmation",
+          label: "Export LC Advising & Confirmation",
         },
         {
           to: "/export/negotiation-discounting",
-          label: "2.2 Export Bill Negotiation / Discounting",
+          label: "Export Bill Negotiation / Discounting",
         },
       ],
     },
@@ -85,14 +104,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       label: "Guarantee",
       icon: ShieldCheck,
       children: [
-        { to: "/guarantee/counter-guarantee", label: "3.1 Counter Guarantee Issuance" },
-        { to: "/guarantee/advising", label: "3.2 Guarantee Advising" },
+        { to: "/guarantee/counter-guarantee", label: "Counter Guarantee Issuance" },
+        { to: "/guarantee/advising", label: "Guarantee Advising" },
       ],
     },
     { to: "/reports", label: "Reports & Analytics", icon: BarChart3 },
     { to: "/requests", label: "Transactions", icon: Files },
     { to: "/notifications", label: "Notifications", icon: Bell },
-
   ];
 
   const isActive = (to: string) =>
