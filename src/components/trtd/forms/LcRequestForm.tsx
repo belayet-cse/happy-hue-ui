@@ -302,8 +302,28 @@ export function LcRequestForm({
           <Label>System transaction reference number</Label>
           <Input value="Auto generated on submit" readOnly disabled />
         </div>
+        {isOtherBank ? (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="issuing-bank">
+              Issuing bank<span className="ml-0.5 text-destructive">*</span>
+            </Label>
+            <Input
+              id="issuing-bank"
+              list="advise-book"
+              placeholder="Bank that issued the LC"
+              value={issuingBank}
+              onChange={(e) => setIssuingBank(e.target.value)}
+            />
+          </div>
+        ) : null}
         <div className="space-y-2 sm:col-span-2">
-          <Label>{variant === "UPAS" ? "UPAS LC request type" : "Transaction type"}</Label>
+          <Label>
+            {variant === "UPAS"
+              ? "UPAS LC request type"
+              : isOtherBank
+                ? "Requested facility"
+                : "Transaction type"}
+          </Label>
           <Select value={txnTypeKey} onValueChange={(v) => changeType(v as TxnTypeKey)}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -318,7 +338,9 @@ export function LcRequestForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lc-no">LC number (if already issued)</Label>
+          <Label htmlFor="lc-no">
+            LC number{isOtherBank ? <span className="ml-0.5 text-destructive">*</span> : " (if already issued)"}
+          </Label>
           <Input id="lc-no" value={lcNumber} onChange={(e) => setLcNumber(e.target.value)} />
         </div>
         <div className="space-y-2">
