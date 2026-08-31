@@ -473,10 +473,13 @@ export function LcRequestForm({
             </div>
 
             <div className="space-y-2">
-              <Label>Sample tenor text</Label>
-              <Select value={l.tenor} onValueChange={(v) => setLine(i, { tenor: v })}>
+              <Label>Tenor</Label>
+              <Select
+                value={cfg.tenorSamples.includes(l.tenor) ? l.tenor : ""}
+                onValueChange={(v) => setLine(i, { tenor: v })}
+              >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a sample tenor" />
+                  <SelectValue placeholder="Select tenor" />
                 </SelectTrigger>
                 <SelectContent>
                   {cfg.tenorSamples.map((s) => (
