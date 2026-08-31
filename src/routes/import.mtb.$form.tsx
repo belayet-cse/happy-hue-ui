@@ -6,7 +6,7 @@ import { AmendmentForm } from "@/components/trtd/forms/AmendmentForm";
 import { BillGridForm } from "@/components/trtd/forms/BillGridForm";
 import { LcRequestForm } from "@/components/trtd/forms/LcRequestForm";
 import { Card, CardContent } from "@/components/ui/card";
-import { MTB_FORMS, type MtbFormKey } from "@/lib/trtd/forms";
+import { MTB_FORMS, MTB_FORM_ALIASES, type MtbFormKey } from "@/lib/trtd/forms";
 
 export const Route = createFileRoute("/import/mtb/$form")({
   head: () => ({
