@@ -211,9 +211,9 @@ export function LcRequestForm({
   const validate = (): string | null => {
     if (!applicantName.trim()) return "Applicant full name is required";
     if (!beneficiaryName.trim()) return "Beneficiary full name is required";
-    if (!lines.length) return "At least one transaction detail is required";
+    if (!lines.length) return "At least one LC details block is required";
     for (const [i, l] of lines.entries()) {
-      const no = `Transaction ${String(i + 1).padStart(2, "0")}`;
+      const no = `LC ${String(i + 1).padStart(2, "0")}`;
       if (!Number(l.amount)) return `${no}: LC value is required`;
       if (!l.goods.trim()) return `${no}: goods description is required`;
       if (!l.chargeCategories.length) return `${no}: select at least one charge category`;
