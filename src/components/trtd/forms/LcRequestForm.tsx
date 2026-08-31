@@ -246,10 +246,13 @@ export function LcRequestForm({
       createRequest({
         requestType: cfg.requestType,
         module: "IMPORT",
-        subDivision: "1.1 MTB Transaction Request",
+        subDivision: isOtherBank
+          ? "1.2 Other Bank's Transaction Request"
+          : "1.1 MTB Transaction Request",
         actor: session,
         details: {
           ...blankDetails(),
+          issuingBank: isOtherBank ? issuingBank.trim() : undefined,
           lcNumber,
           dateOfIssue,
           currency: l.currency,
