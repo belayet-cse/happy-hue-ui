@@ -120,6 +120,15 @@ export interface RequestDetails {
   presentationDate?: string | undefined;
   maturityDate?: string | undefined;
   nonDesignatedReason?: string | undefined;
+  /** Import 1.3 — auto-captured LC data and RM inputs (PPT slide 14) */
+  shipmentFrom?: string | undefined;
+  shipmentTo?: string | undefined;
+  pricingInformation?: string | undefined;
+  financeArrangementRequest?: string | undefined;
+  billCurrency?: string | undefined;
+  billAmount?: number | undefined;
+  financingTenorDays?: string | undefined;
+
   /** Amendment request lines entered by RM */
   amendmentRequests?: string[] | undefined;
   /** Bill rows for Refinance / Maturity Extension / other-bank requests */
