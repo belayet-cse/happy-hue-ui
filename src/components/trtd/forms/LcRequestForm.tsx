@@ -172,6 +172,7 @@ export function LcRequestForm({
   const [lines, setLines] = useState<Line[]>([emptyLine(typeKeys[0] as TxnTypeKey)]);
   const [documents, setDocuments] = useState<string[]>([]);
   const [remarks, setRemarks] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const applicantBook = useMemo(() => {
     const map = new Map<string, string>();
