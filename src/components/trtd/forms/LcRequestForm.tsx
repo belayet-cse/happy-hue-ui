@@ -650,7 +650,7 @@ export function LcRequestForm({
             size="sm"
             onClick={() => setLines((prev) => [...prev, emptyLine(txnTypeKey)])}
           >
-            <Plus className="mr-1 h-4 w-4" /> Add another transaction
+            <Plus className="mr-1 h-4 w-4" /> Add another LC details
           </Button>
           <p className="text-sm">
             <span className="text-muted-foreground">Total amount value: </span>
