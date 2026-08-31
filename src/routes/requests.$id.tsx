@@ -231,14 +231,16 @@ function RequestDetailPage() {
                 </FieldTable>
               ) : null}
 
-              <FieldTable title="Goods & shipment">
-                <FieldRow label="Description of item" value={d.goodsDescription} />
-                <FieldRow label="HS code" value={d.hsCode} />
+              {d.bills?.length ? null : (
+                <FieldTable title="Goods & shipment">
+                  <FieldRow label="Description of item" value={d.goodsDescription} />
+                  <FieldRow label="HS code" value={d.hsCode} />
+                  <FieldRow label="Country of origin" value={d.countryOfOrigin} />
+                  <FieldRow label="Shipment from" value={d.portOfLoading} />
+                  <FieldRow label="Shipment to" value={d.portOfDischarge} />
+                </FieldTable>
+              )}
 
-                <FieldRow label="Country of origin" value={d.countryOfOrigin} />
-                <FieldRow label="Shipment from" value={d.portOfLoading} />
-                <FieldRow label="Shipment to" value={d.portOfDischarge} />
-              </FieldTable>
 
               <FieldTable title="Charges, documents & remarks">
                 <FieldRow label="Charges to be borne" value={d.chargesBorneBy} />
