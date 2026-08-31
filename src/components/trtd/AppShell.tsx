@@ -113,12 +113,47 @@ type NavChild = {
     { to: "/notifications", label: "Notifications", icon: Bell },
   ];
 
-  const isActive = (to: string) =>
+const isActive = (to: string) =>
     to === "/requests"
       ? pathname === "/requests" || pathname.startsWith("/requests/txn")
       : to === "/dashboard" || to === "/notifications"
         ? pathname === to
         : pathname === to || pathname.startsWith(`${to}/`);
+
+  const isPathActive = (to: string) =>
+    pathname === to || pathname.startsWith(`${to}/`);
+
+  const hasActiveDescendant = (children?: NavChild[]): boolean =>
+    (children ?? []).some(
+      (c) => isPathActive(c.to) || hasActiveDescendant(c.children),
+    );
+
+  const renderLinks = (children: NavChild[]): React.ReactNode =>
+    children.map((child) => {
+      const childActive = isPathActive(child.to);
+      const childExpanded = childActive || hasActiveDescendant(child.children);
+      return (
+        <div key={child.to}>
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            to={child.to as any}
+            className={cn(
+              "block rounded-sm px-2 py-1.5 text-xs transition-colors",
+              childActive
+                ? "bg-sidebar-accent/70 font-medium text-sidebar-accent-foreground"
+                : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground",
+            )}
+          >
+            {child.label}
+          </Link>
+          {child.children && childExpanded ? (
+            <div className="mt-0.5 ml-3 space-y-0.5 border-l border-sidebar-border pl-3">
+              {renderLinks(child.children)}
+            </div>
+          ) : null}
+        </div>
+      );
+    });
 
   return (
     <div className="flex min-h-screen bg-background">
