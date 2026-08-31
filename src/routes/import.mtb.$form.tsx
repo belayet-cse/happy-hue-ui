@@ -6,7 +6,7 @@ import { AmendmentForm } from "@/components/trtd/forms/AmendmentForm";
 import { BillGridForm } from "@/components/trtd/forms/BillGridForm";
 import { LcRequestForm } from "@/components/trtd/forms/LcRequestForm";
 import { Card, CardContent } from "@/components/ui/card";
-import { MTB_FORMS, type MtbFormKey } from "@/lib/trtd/forms";
+import { MTB_FORMS, MTB_FORM_ALIASES, type MtbFormKey } from "@/lib/trtd/forms";
 
 export const Route = createFileRoute("/import/mtb/$form")({
   head: () => ({
@@ -34,7 +34,7 @@ function MtbFormPage() {
   const { form } = useParams({ from: "/import/mtb/$form" });
   if (!session) return null;
 
-  const key = form as MtbFormKey;
+  const key = (MTB_FORM_ALIASES[form] ?? form) as MtbFormKey;
   const meta = MTB_FORMS[key];
 
   if (!meta) {
@@ -46,7 +46,7 @@ function MtbFormPage() {
             That request form does not exist.{" "}
             <Link
               to="/import/mtb/$form"
-              params={{ form: "lc-request" }}
+              params={{ form: "lc-confirmation" }}
               className="text-primary hover:underline"
             >
               Go to LC Confirmation request
@@ -77,7 +77,10 @@ function MtbFormPage() {
         title={meta.title}
         description={`${meta.code} — Import → MTB Transaction Request`}
       />
-      {key === "lc-request" ? <LcRequestForm session={session} /> : null}
+      {key === "lc-confirmation" ? (
+        <LcRequestForm session={session} variant="CONFIRMATION" />
+      ) : null}
+      {key === "upas-lc" ? <LcRequestForm session={session} variant="UPAS" /> : null}
       {key === "amendment" ? <AmendmentForm session={session} /> : null}
       {key === "advance-tt" ? <AdvanceTtForm session={session} /> : null}
       {key === "refinance" ? <BillGridForm mode="REFINANCE" session={session} /> : null}
