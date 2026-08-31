@@ -1,14 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  ADVISING_BANKS,
-  CURRENCIES,
-  DocumentsField,
-  PreviewRow,
-  Section,
-} from "@/components/trtd/FormKit";
+import { CURRENCIES, DocumentsField, PreviewRow, Section } from "@/components/trtd/FormKit";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,64 +23,94 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { formatMoney } from "@/lib/trtd/format";
-import { createRequest } from "@/lib/trtd/store";
+import { createRequest, useTrtdStore } from "@/lib/trtd/store";
 import { blankDetails, type Session } from "@/lib/trtd/types";
 
-/** One presented document set — repeatable. */
-interface Presentation {
-  documentSetReference: string;
-  currency: string;
-  billAmount: string;
-  presentationDate: string;
-  maturityDate: string;
+/** LC data auto-captured against the LC number (PPT slide 14). */
+interface CapturedLc {
+  applicant: string;
+  beneficiary: string;
+  lcValue: string;
+  tenorOfDraft: string;
+  descriptionOfItem: string;
+  countryOfOrigin: string;
+  shipmentFrom: string;
+  shipmentTo: string;
+  pricingInformation: string;
 }
 
-const emptySet = (): Presentation => ({
-  documentSetReference: "",
-  currency: "USD",
-  billAmount: "",
-  presentationDate: "",
-  maturityDate: "",
-});
+const emptyCapture: CapturedLc = {
+  applicant: "",
+  beneficiary: "",
+  lcValue: "",
+  tenorOfDraft: "",
+  descriptionOfItem: "",
+  countryOfOrigin: "",
+  shipmentFrom: "",
+  shipmentTo: "",
+  pricingInformation: "",
+};
 
-/** Import 1.3 — documents presented at a bank other than the designated bank. */
+/**
+ * Import 1.3 — Non-Designated Presentation Transaction Request (PPT slide 14).
+ * LC number is keyed in; every LC field is auto-captured. The RM only inputs the
+ * finance arrangement request, bill amount, financing tenor and remarks.
+ */
 export function NonDesignatedForm({ session }: { session: Session }) {
   const navigate = useNavigate();
+  const { transactions } = useTrtdStore();
 
   const [lcNumber, setLcNumber] = useState("");
-  const [dateOfIssue, setDateOfIssue] = useState("");
-  const [applicantName, setApplicantName] = useState("");
-  const [applicantAddress, setApplicantAddress] = useState("");
-  const [beneficiaryName, setBeneficiaryName] = useState("");
-  const [beneficiaryAddress, setBeneficiaryAddress] = useState("");
-  const [presentingBank, setPresentingBank] = useState("");
-  const [designatedBank, setDesignatedBank] = useState("");
-  const [reason, setReason] = useState("");
-  const [sets, setSets] = useState<Presentation[]>([emptySet()]);
+  const [captured, setCaptured] = useState<CapturedLc>(emptyCapture);
+  const [isCaptured, setIsCaptured] = useState(false);
+
+  const [financeRequest, setFinanceRequest] = useState("");
+  const [billCurrency, setBillCurrency] = useState("USD");
+  const [billAmount, setBillAmount] = useState("");
+  const [financingTenor, setFinancingTenor] = useState("");
   const [documents, setDocuments] = useState<string[]>([]);
   const [remarks, setRemarks] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const setSet = (i: number, patch: Partial<Presentation>) =>
-    setSets((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+  const capture = () => {
+    const key = lcNumber.trim().toLowerCase();
+    if (!key) return void toast.error("Enter the LC number first");
 
-  const currency = sets[0]?.currency ?? "USD";
-  const total = sets.reduce((sum, s) => sum + (Number(s.billAmount) || 0), 0);
+    const match = transactions.find((t) =>
+      t.details.lcNumber.toLowerCase().includes(key),
+    );
+    if (!match) {
+      setIsCaptured(false);
+      setCaptured(emptyCapture);
+      return void toast.error(
+        "No LC found for that number. Check the LC number and try again.",
+      );
+    }
+
+    const d = match.details;
+    setCaptured({
+      applicant: [d.applicantName, d.applicantAddress].filter(Boolean).join(", "),
+      beneficiary: [d.beneficiaryName, d.beneficiaryAddress].filter(Boolean).join(", "),
+      lcValue: formatMoney(d.currency, d.amount),
+      tenorOfDraft: d.tenorOfDraft,
+      descriptionOfItem: d.goodsDescription,
+      countryOfOrigin: d.countryOfOrigin,
+      shipmentFrom: d.portOfLoading,
+      shipmentTo: d.portOfDischarge,
+      pricingInformation:
+        match.quotes.at(-1)?.pricingSummary ?? "Not yet priced by the FI desk",
+    });
+    setBillCurrency(d.currency || "USD");
+    setIsCaptured(true);
+    toast.success(`LC ${d.lcNumber} details captured`);
+  };
 
   const validate = (): string | null => {
     if (!lcNumber.trim()) return "LC number is required";
-    if (!applicantName.trim()) return "Applicant name is required";
-    if (!beneficiaryName.trim()) return "Beneficiary name is required";
-    if (!presentingBank.trim()) return "Presenting bank is required";
-    if (!designatedBank.trim()) return "Designated bank is required";
-    if (!reason.trim()) return "Reason for non-designated presentation is required";
-    for (const [i, s] of sets.entries()) {
-      const no = `Presentation ${String(i + 1).padStart(2, "0")}`;
-      if (!Number(s.billAmount)) return `${no}: bill amount is required`;
-      if (!s.presentationDate) return `${no}: presentation date is required`;
-      if (s.maturityDate && s.maturityDate < s.presentationDate)
-        return `${no}: maturity date cannot be before the presentation date`;
-    }
+    if (!isCaptured) return "Capture the LC details before submitting";
+    if (!financeRequest.trim()) return "Request for arrange finance is required";
+    if (!Number(billAmount)) return "Bill amount is required";
+    if (!financingTenor.trim()) return "Financing tenor is required";
     return null;
   };
 
@@ -94,51 +118,44 @@ export function NonDesignatedForm({ session }: { session: Session }) {
     const err = validate();
     if (err) return void toast.error(err);
 
-    const ids = sets.map((s) =>
-      createRequest({
-        requestType: "NON_DESIGNATED",
-        module: "IMPORT",
-        subDivision: "1.3 Non-Designated Presentation",
-        actor: session,
-        details: {
-          ...blankDetails(),
-          lcNumber,
-          dateOfIssue,
-          currency: s.currency,
-          amount: Number(s.billAmount),
-          applicantName: applicantName.trim(),
-          applicantAddress,
-          beneficiaryName: beneficiaryName.trim(),
-          beneficiaryAddress,
-          presentingBank: presentingBank.trim(),
-          designatedBank: designatedBank.trim(),
-          documentSetReference: s.documentSetReference,
-          presentationDate: s.presentationDate,
-          maturityDate: s.maturityDate,
-          nonDesignatedReason: reason,
-          tenorOfDraft: s.maturityDate
-            ? `Bill matures on ${s.maturityDate}`
-            : "At sight presentation",
-          attachments: documents,
-          lcCopyFileName: documents[0] ?? "",
-          remarks,
-        },
-      }),
-    );
+    const id = createRequest({
+      requestType: "NON_DESIGNATED",
+      module: "IMPORT",
+      subDivision: "Non-Designated Presentation",
+      actor: session,
+      details: {
+        ...blankDetails(),
+        lcNumber: lcNumber.trim(),
+        currency: billCurrency,
+        amount: Number(billAmount),
+        applicantName: captured.applicant,
+        beneficiaryName: captured.beneficiary,
+        tenorOfDraft: captured.tenorOfDraft,
+        goodsDescription: captured.descriptionOfItem,
+        countryOfOrigin: captured.countryOfOrigin,
+        portOfLoading: captured.shipmentFrom,
+        portOfDischarge: captured.shipmentTo,
+        shipmentFrom: captured.shipmentFrom,
+        shipmentTo: captured.shipmentTo,
+        pricingInformation: captured.pricingInformation,
+        financeArrangementRequest: financeRequest,
+        billCurrency,
+        billAmount: Number(billAmount),
+        financingTenorDays: financingTenor,
+        attachments: documents,
+        lcCopyFileName: documents[0] ?? "",
+        remarks,
+      },
+    });
 
     setPreviewOpen(false);
-    toast.success(
-      ids.length > 1
-        ? `${ids.length} non-designated presentations submitted to FI (MFIS)`
-        : "Non-designated presentation submitted to FI (MFIS) — notification sent",
-    );
-    const first = ids[0];
-    if (first) navigate({ to: "/requests/$id", params: { id: first } });
+    toast.success("Non-designated presentation submitted to FI — notification sent");
+    navigate({ to: "/requests/$id", params: { id } });
   };
 
   return (
     <div className="space-y-6">
-      <Section title="Transaction">
+      <Section title="LC number" className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>System transaction reference number</Label>
           <Input value="Auto generated on submit" readOnly disabled />
@@ -147,206 +164,116 @@ export function NonDesignatedForm({ session }: { session: Session }) {
           <Label htmlFor="nd-lc">
             LC number<span className="ml-0.5 text-destructive">*</span>
           </Label>
-          <Input id="nd-lc" value={lcNumber} onChange={(e) => setLcNumber(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="nd-doi">Date of issue</Label>
-          <Input
-            id="nd-doi"
-            type="date"
-            value={dateOfIssue}
-            onChange={(e) => setDateOfIssue(e.target.value)}
-          />
-        </div>
-      </Section>
-
-      <Section title="Applicant">
-        <div className="space-y-2">
-          <Label htmlFor="nd-app">
-            Applicant full name<span className="ml-0.5 text-destructive">*</span>
-          </Label>
-          <Input
-            id="nd-app"
-            value={applicantName}
-            onChange={(e) => setApplicantName(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="nd-app-addr">Applicant address</Label>
-          <Textarea
-            id="nd-app-addr"
-            rows={3}
-            value={applicantAddress}
-            onChange={(e) => setApplicantAddress(e.target.value)}
-          />
-        </div>
-      </Section>
-
-      <Section title="Beneficiary">
-        <div className="space-y-2">
-          <Label htmlFor="nd-ben">
-            Beneficiary full name<span className="ml-0.5 text-destructive">*</span>
-          </Label>
-          <Input
-            id="nd-ben"
-            value={beneficiaryName}
-            onChange={(e) => setBeneficiaryName(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="nd-ben-addr">Beneficiary address</Label>
-          <Textarea
-            id="nd-ben-addr"
-            rows={3}
-            value={beneficiaryAddress}
-            onChange={(e) => setBeneficiaryAddress(e.target.value)}
-          />
-        </div>
-      </Section>
-
-      <Section title="Banks">
-        <div className="space-y-2">
-          <Label htmlFor="nd-presenting">
-            Presenting bank<span className="ml-0.5 text-destructive">*</span>
-          </Label>
-          <Input
-            id="nd-presenting"
-            list="nd-bank-book"
-            placeholder="Bank where documents were presented"
-            value={presentingBank}
-            onChange={(e) => setPresentingBank(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="nd-designated">
-            Designated bank<span className="ml-0.5 text-destructive">*</span>
-          </Label>
-          <Input
-            id="nd-designated"
-            list="nd-bank-book"
-            placeholder="Bank nominated under the LC"
-            value={designatedBank}
-            onChange={(e) => setDesignatedBank(e.target.value)}
-          />
-        </div>
-        <datalist id="nd-bank-book">
-          {ADVISING_BANKS.map((b) => (
-            <option key={b} value={b} />
-          ))}
-        </datalist>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="nd-reason">
-            Reason for non-designated presentation
-            <span className="ml-0.5 text-destructive">*</span>
-          </Label>
-          <Textarea
-            id="nd-reason"
-            rows={3}
-            placeholder="e.g. Beneficiary presented documents to its own bank instead of the nominated bank"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-        </div>
-      </Section>
-
-      <Section title="Presentation details" className="space-y-5">
-        <p className="text-xs text-muted-foreground">
-          Document set reference, bill amount, presentation date and maturity date are
-          captured together. Add another presentation for each additional document set
-          under the same LC — each one gets its own system transaction reference.
-        </p>
-
-        {sets.map((s, i) => (
-          <div key={i} className="space-y-4 rounded-md border border-border p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">
-                Presentation {String(i + 1).padStart(2, "0")}
-              </p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={sets.length === 1}
-                onClick={() => setSets((prev) => prev.filter((_, idx) => idx !== i))}
-              >
-                <Trash2 className="mr-1 h-4 w-4" /> Remove
-              </Button>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor={`nd-set-${i}`}>Document set reference</Label>
-                <Input
-                  id={`nd-set-${i}`}
-                  value={s.documentSetReference}
-                  onChange={(e) => setSet(i, { documentSetReference: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Currency</Label>
-                <Select value={s.currency} onValueChange={(v) => setSet(i, { currency: v })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={`nd-amt-${i}`}>
-                  Bill amount<span className="ml-0.5 text-destructive">*</span>
-                </Label>
-                <Input
-                  id={`nd-amt-${i}`}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={s.billAmount}
-                  onChange={(e) => setSet(i, { billAmount: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={`nd-pres-${i}`}>
-                  Presentation date<span className="ml-0.5 text-destructive">*</span>
-                </Label>
-                <Input
-                  id={`nd-pres-${i}`}
-                  type="date"
-                  value={s.presentationDate}
-                  onChange={(e) => setSet(i, { presentationDate: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={`nd-mat-${i}`}>Maturity date</Label>
-                <Input
-                  id={`nd-mat-${i}`}
-                  type="date"
-                  value={s.maturityDate}
-                  onChange={(e) => setSet(i, { maturityDate: e.target.value })}
-                />
-              </div>
-            </div>
+          <div className="flex gap-2">
+            <Input
+              id="nd-lc"
+              value={lcNumber}
+              placeholder="Key in the LC number"
+              onChange={(e) => {
+                setLcNumber(e.target.value);
+                setIsCaptured(false);
+              }}
+            />
+            <Button type="button" variant="outline" onClick={capture}>
+              <Search className="mr-1 h-4 w-4" /> Capture
+            </Button>
           </div>
-        ))}
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setSets((prev) => [...prev, emptySet()])}
-          >
-            <Plus className="mr-1 h-4 w-4" /> Add another presentation
-          </Button>
-          <p className="text-sm">
-            <span className="text-muted-foreground">Total amount value: </span>
-            <span className="font-semibold">{formatMoney(currency, total)}</span>
+          <p className="text-xs text-muted-foreground">
+            All LC data below is auto-captured against this LC number.
           </p>
+        </div>
+      </Section>
+
+      <Section title="Auto-captured LC data">
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Applicant full name and address</Label>
+          <Textarea rows={2} value={captured.applicant} readOnly disabled />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Beneficiary full name and address</Label>
+          <Textarea rows={2} value={captured.beneficiary} readOnly disabled />
+        </div>
+        <div className="space-y-2">
+          <Label>LC value and currency</Label>
+          <Input value={captured.lcValue} readOnly disabled />
+        </div>
+        <div className="space-y-2">
+          <Label>Tenor of draft</Label>
+          <Input value={captured.tenorOfDraft} readOnly disabled />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Description of item</Label>
+          <Textarea rows={2} value={captured.descriptionOfItem} readOnly disabled />
+        </div>
+        <div className="space-y-2">
+          <Label>Country of origin</Label>
+          <Input value={captured.countryOfOrigin} readOnly disabled />
+        </div>
+        <div className="space-y-2">
+          <Label>Shipment from</Label>
+          <Input value={captured.shipmentFrom} readOnly disabled />
+        </div>
+        <div className="space-y-2">
+          <Label>Shipment to</Label>
+          <Input value={captured.shipmentTo} readOnly disabled />
+        </div>
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Pricing information</Label>
+          <Input value={captured.pricingInformation} readOnly disabled />
+        </div>
+      </Section>
+
+      <Section title="RM input">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="nd-fin-req">
+            Request for arrange finance<span className="ml-0.5 text-destructive">*</span>
+          </Label>
+          <Textarea
+            id="nd-fin-req"
+            rows={3}
+            placeholder="State the finance arrangement being requested against this presentation"
+            value={financeRequest}
+            onChange={(e) => setFinanceRequest(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Bill currency</Label>
+          <Select value={billCurrency} onValueChange={setBillCurrency}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CURRENCIES.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="nd-bill-amt">
+            Bill amount<span className="ml-0.5 text-destructive">*</span>
+          </Label>
+          <Input
+            id="nd-bill-amt"
+            type="number"
+            min="0"
+            step="0.01"
+            value={billAmount}
+            onChange={(e) => setBillAmount(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="nd-fin-tenor">
+            Financing tenor<span className="ml-0.5 text-destructive">*</span>
+          </Label>
+          <Input
+            id="nd-fin-tenor"
+            placeholder="e.g. 180 days"
+            value={financingTenor}
+            onChange={(e) => setFinancingTenor(e.target.value)}
+          />
         </div>
       </Section>
 
@@ -354,7 +281,7 @@ export function NonDesignatedForm({ session }: { session: Session }) {
         <DocumentsField
           documents={documents}
           onChange={setDocuments}
-          hint="Attach the LC copy, presented document set, covering schedule of the presenting bank and any correspondence."
+          hint="Attach the LC copy, presented document set and covering schedule of the presenting bank."
         />
         <div className="space-y-2">
           <Label htmlFor="nd-remarks">Remarks</Label>
@@ -392,27 +319,21 @@ export function NonDesignatedForm({ session }: { session: Session }) {
 
           <dl className="divide-y divide-border text-sm">
             <PreviewRow label="LC number" value={lcNumber} />
-            <PreviewRow label="Date of issue" value={dateOfIssue} />
-            <PreviewRow label="Applicant" value={applicantName} />
-            <PreviewRow label="Beneficiary" value={beneficiaryName} />
-            <PreviewRow label="Presenting bank" value={presentingBank} />
-            <PreviewRow label="Designated bank" value={designatedBank} />
-            <PreviewRow label="Reason" value={reason} />
+            <PreviewRow label="Applicant" value={captured.applicant} />
+            <PreviewRow label="Beneficiary" value={captured.beneficiary} />
+            <PreviewRow label="LC value and currency" value={captured.lcValue} />
+            <PreviewRow label="Tenor of draft" value={captured.tenorOfDraft} />
+            <PreviewRow label="Description of item" value={captured.descriptionOfItem} />
+            <PreviewRow label="Country of origin" value={captured.countryOfOrigin} />
+            <PreviewRow label="Shipment from" value={captured.shipmentFrom} />
+            <PreviewRow label="Shipment to" value={captured.shipmentTo} />
+            <PreviewRow label="Pricing information" value={captured.pricingInformation} />
+            <PreviewRow label="Request for arrange finance" value={financeRequest} />
             <PreviewRow
-              label="Presentations"
-              value={sets
-                .map(
-                  (s, i) =>
-                    `${i + 1}. ${s.documentSetReference || "—"} — ${formatMoney(
-                      s.currency,
-                      Number(s.billAmount) || 0,
-                    )} — presented ${s.presentationDate}${
-                      s.maturityDate ? ` — matures ${s.maturityDate}` : ""
-                    }`,
-                )
-                .join("\n")}
+              label="Bill amount"
+              value={formatMoney(billCurrency, Number(billAmount) || 0)}
             />
-            <PreviewRow label="Total amount value" value={formatMoney(currency, total)} />
+            <PreviewRow label="Financing tenor" value={financingTenor} />
             <PreviewRow
               label="Documents attached"
               value={documents.length ? documents.join(", ") : "None"}
