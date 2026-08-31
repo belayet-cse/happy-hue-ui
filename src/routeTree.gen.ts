@@ -13,9 +13,19 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ExportIndexRouteImport } from './routes/export.index'
+import { Route as ExportFormRouteImport } from './routes/export.$form'
+import { Route as GuaranteeIndexRouteImport } from './routes/guarantee.index'
+import { Route as GuaranteeFormRouteImport } from './routes/guarantee.$form'
+import { Route as ImportIndexRouteImport } from './routes/import.index'
+import { Route as ImportNonDesignatedRouteImport } from './routes/import.non-designated'
+import { Route as ImportOtherBankRouteImport } from './routes/import.other-bank'
 import { Route as RequestsIndexRouteImport } from './routes/requests.index'
 import { Route as RequestsIdRouteImport } from './routes/requests.$id'
 import { Route as RequestsNewRouteImport } from './routes/requests.new'
+import { Route as ImportMtbIndexRouteImport } from './routes/import.mtb.index'
+import { Route as ImportMtbFormRouteImport } from './routes/import.mtb.$form'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,6 +47,46 @@ const NotificationsRoute = NotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExportIndexRoute = ExportIndexRouteImport.update({
+  id: '/export/',
+  path: '/export/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExportFormRoute = ExportFormRouteImport.update({
+  id: '/export/$form',
+  path: '/export/$form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuaranteeIndexRoute = GuaranteeIndexRouteImport.update({
+  id: '/guarantee/',
+  path: '/guarantee/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuaranteeFormRoute = GuaranteeFormRouteImport.update({
+  id: '/guarantee/$form',
+  path: '/guarantee/$form',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportIndexRoute = ImportIndexRouteImport.update({
+  id: '/import/',
+  path: '/import/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportNonDesignatedRoute = ImportNonDesignatedRouteImport.update({
+  id: '/import/non-designated',
+  path: '/import/non-designated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportOtherBankRoute = ImportOtherBankRouteImport.update({
+  id: '/import/other-bank',
+  path: '/import/other-bank',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RequestsIndexRoute = RequestsIndexRouteImport.update({
   id: '/requests/',
   path: '/requests/',
@@ -52,24 +102,54 @@ const RequestsNewRoute = RequestsNewRouteImport.update({
   path: '/requests/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImportMtbIndexRoute = ImportMtbIndexRouteImport.update({
+  id: '/import/mtb/',
+  path: '/import/mtb/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportMtbFormRoute = ImportMtbFormRouteImport.update({
+  id: '/import/mtb/$form',
+  path: '/import/mtb/$form',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
+  '/reports': typeof ReportsRoute
+  '/export/$form': typeof ExportFormRoute
+  '/guarantee/$form': typeof GuaranteeFormRoute
+  '/import/non-designated': typeof ImportNonDesignatedRoute
+  '/import/other-bank': typeof ImportOtherBankRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
+  '/export/': typeof ExportIndexRoute
+  '/guarantee/': typeof GuaranteeIndexRoute
+  '/import/': typeof ImportIndexRoute
   '/requests/': typeof RequestsIndexRoute
+  '/import/mtb/$form': typeof ImportMtbFormRoute
+  '/import/mtb/': typeof ImportMtbIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
+  '/reports': typeof ReportsRoute
+  '/export/$form': typeof ExportFormRoute
+  '/guarantee/$form': typeof GuaranteeFormRoute
+  '/import/non-designated': typeof ImportNonDesignatedRoute
+  '/import/other-bank': typeof ImportOtherBankRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
+  '/export': typeof ExportIndexRoute
+  '/guarantee': typeof GuaranteeIndexRoute
+  '/import': typeof ImportIndexRoute
   '/requests': typeof RequestsIndexRoute
+  '/import/mtb/$form': typeof ImportMtbFormRoute
+  '/import/mtb': typeof ImportMtbIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,9 +157,19 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
+  '/reports': typeof ReportsRoute
+  '/export/$form': typeof ExportFormRoute
+  '/guarantee/$form': typeof GuaranteeFormRoute
+  '/import/non-designated': typeof ImportNonDesignatedRoute
+  '/import/other-bank': typeof ImportOtherBankRoute
   '/requests/$id': typeof RequestsIdRoute
   '/requests/new': typeof RequestsNewRoute
+  '/export/': typeof ExportIndexRoute
+  '/guarantee/': typeof GuaranteeIndexRoute
+  '/import/': typeof ImportIndexRoute
   '/requests/': typeof RequestsIndexRoute
+  '/import/mtb/$form': typeof ImportMtbFormRoute
+  '/import/mtb/': typeof ImportMtbIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -88,27 +178,57 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/notifications'
+    | '/reports'
+    | '/export/$form'
+    | '/guarantee/$form'
+    | '/import/non-designated'
+    | '/import/other-bank'
     | '/requests/$id'
     | '/requests/new'
+    | '/export/'
+    | '/guarantee/'
+    | '/import/'
     | '/requests/'
+    | '/import/mtb/$form'
+    | '/import/mtb/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
     | '/login'
     | '/notifications'
+    | '/reports'
+    | '/export/$form'
+    | '/guarantee/$form'
+    | '/import/non-designated'
+    | '/import/other-bank'
     | '/requests/$id'
     | '/requests/new'
+    | '/export'
+    | '/guarantee'
+    | '/import'
     | '/requests'
+    | '/import/mtb/$form'
+    | '/import/mtb'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/login'
     | '/notifications'
+    | '/reports'
+    | '/export/$form'
+    | '/guarantee/$form'
+    | '/import/non-designated'
+    | '/import/other-bank'
     | '/requests/$id'
     | '/requests/new'
+    | '/export/'
+    | '/guarantee/'
+    | '/import/'
     | '/requests/'
+    | '/import/mtb/$form'
+    | '/import/mtb/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,9 +236,19 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
+  ReportsRoute: typeof ReportsRoute
+  ExportFormRoute: typeof ExportFormRoute
+  GuaranteeFormRoute: typeof GuaranteeFormRoute
+  ImportNonDesignatedRoute: typeof ImportNonDesignatedRoute
+  ImportOtherBankRoute: typeof ImportOtherBankRoute
   RequestsIdRoute: typeof RequestsIdRoute
   RequestsNewRoute: typeof RequestsNewRoute
+  ExportIndexRoute: typeof ExportIndexRoute
+  GuaranteeIndexRoute: typeof GuaranteeIndexRoute
+  ImportIndexRoute: typeof ImportIndexRoute
   RequestsIndexRoute: typeof RequestsIndexRoute
+  ImportMtbFormRoute: typeof ImportMtbFormRoute
+  ImportMtbIndexRoute: typeof ImportMtbIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -151,6 +281,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/export/': {
+      id: '/export/'
+      path: '/export'
+      fullPath: '/export/'
+      preLoaderRoute: typeof ExportIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/export/$form': {
+      id: '/export/$form'
+      path: '/export/$form'
+      fullPath: '/export/$form'
+      preLoaderRoute: typeof ExportFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guarantee/': {
+      id: '/guarantee/'
+      path: '/guarantee'
+      fullPath: '/guarantee/'
+      preLoaderRoute: typeof GuaranteeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guarantee/$form': {
+      id: '/guarantee/$form'
+      path: '/guarantee/$form'
+      fullPath: '/guarantee/$form'
+      preLoaderRoute: typeof GuaranteeFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/': {
+      id: '/import/'
+      path: '/import'
+      fullPath: '/import/'
+      preLoaderRoute: typeof ImportIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/non-designated': {
+      id: '/import/non-designated'
+      path: '/import/non-designated'
+      fullPath: '/import/non-designated'
+      preLoaderRoute: typeof ImportNonDesignatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/other-bank': {
+      id: '/import/other-bank'
+      path: '/import/other-bank'
+      fullPath: '/import/other-bank'
+      preLoaderRoute: typeof ImportOtherBankRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/requests/': {
       id: '/requests/'
       path: '/requests'
@@ -172,6 +358,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RequestsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/import/mtb/': {
+      id: '/import/mtb/'
+      path: '/import/mtb'
+      fullPath: '/import/mtb/'
+      preLoaderRoute: typeof ImportMtbIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/mtb/$form': {
+      id: '/import/mtb/$form'
+      path: '/import/mtb/$form'
+      fullPath: '/import/mtb/$form'
+      preLoaderRoute: typeof ImportMtbFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -180,9 +380,19 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
+  ReportsRoute: ReportsRoute,
+  ExportFormRoute: ExportFormRoute,
+  GuaranteeFormRoute: GuaranteeFormRoute,
+  ImportNonDesignatedRoute: ImportNonDesignatedRoute,
+  ImportOtherBankRoute: ImportOtherBankRoute,
   RequestsIdRoute: RequestsIdRoute,
   RequestsNewRoute: RequestsNewRoute,
+  ExportIndexRoute: ExportIndexRoute,
+  GuaranteeIndexRoute: GuaranteeIndexRoute,
+  ImportIndexRoute: ImportIndexRoute,
   RequestsIndexRoute: RequestsIndexRoute,
+  ImportMtbFormRoute: ImportMtbFormRoute,
+  ImportMtbIndexRoute: ImportMtbIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import type {
   AppNotification,
   ForwardRecord,
+  ModuleKey,
   PriceQuote,
   RequestDetails,
   RequestType,
@@ -10,6 +11,7 @@ import type {
   Transaction,
   TxnStatus,
 } from "./types";
+
 import { seedNotifications, seedTransactions } from "./seed";
 
 const STORAGE_KEY = "trtd.store.v1";
@@ -23,12 +25,22 @@ interface StoreState {
   ready: boolean;
 }
 
+/** Older records (and seed rows) predate the module split — default them to Import. */
+function withModule(list: Transaction[]): Transaction[] {
+  return list.map((t) => ({
+    ...t,
+    module: t.module ?? "IMPORT",
+    subDivision: t.subDivision ?? "1.1 MTB Transaction Request",
+  }));
+}
+
 const initialState: StoreState = {
-  transactions: seedTransactions(),
+  transactions: withModule(seedTransactions()),
   notifications: seedNotifications(),
   session: null,
   ready: false,
 };
+
 
 let state: StoreState = initialState;
 let hydrated = false;
@@ -47,7 +59,7 @@ function hydrate() {
     if (raw) {
       const parsed = JSON.parse(raw) as Omit<StoreState, "session">;
       state = {
-        transactions: parsed.transactions ?? seedTransactions(),
+        transactions: withModule(parsed.transactions ?? seedTransactions()),
         notifications: parsed.notifications ?? seedNotifications(),
         session: session ? (JSON.parse(session) as Session) : null,
         ready: true,
@@ -220,6 +232,8 @@ export function openQuery(txn: Transaction) {
 
 export function createRequest(input: {
   requestType: RequestType;
+  module?: ModuleKey;
+  subDivision?: string;
   branch: string;
   details: RequestDetails;
   actor: Session;
@@ -230,6 +244,8 @@ export function createRequest(input: {
   const txn: Transaction = {
     id,
     referenceNo: `TRTD-2026-00${seq}`,
+    module: input.module ?? "IMPORT",
+    subDivision: input.subDivision ?? "1.1 MTB Transaction Request",
     requestType: input.requestType,
     status: "SUBMITTED",
     createdAt: nowIso(),
@@ -237,6 +253,7 @@ export function createRequest(input: {
     raisedByName: `${input.actor.name} (RM)`,
     branch: input.branch,
     details: input.details,
+
     quotes: [],
     forwards: [],
     queries: [],

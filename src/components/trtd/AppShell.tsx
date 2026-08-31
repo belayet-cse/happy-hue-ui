@@ -1,13 +1,16 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  BarChart3,
   Bell,
-  FilePlus2,
   Files,
   LayoutDashboard,
   LogOut,
+  PackageCheck,
   RotateCcw,
   ShieldCheck,
+  Ship,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -45,14 +48,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mine = notifications.filter((n) => n.toRole === session.role);
   const unread = mine.filter((n) => !n.read);
 
-  const nav = [
+  const nav: {
+    to: string;
+    label: string;
+    icon: typeof Files;
+    children?: { to: string; label: string; params?: Record<string, string> }[];
+  }[] = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    {
+      to: "/import",
+      label: "Import",
+      icon: Ship,
+      children: [
+        { to: "/import/mtb", label: "MTB Transaction Request" },
+        { to: "/import/other-bank", label: "Other Bank Transaction Request" },
+        { to: "/import/non-designated", label: "Non-Designated Presentation" },
+      ],
+    },
+    { to: "/export", label: "Export", icon: PackageCheck },
+    { to: "/guarantee", label: "Guarantee", icon: ShieldCheck },
+    { to: "/reports", label: "Reports & Analytics", icon: BarChart3 },
     { to: "/requests", label: "Transactions", icon: Files },
-    ...(session.role === "RM"
-      ? [{ to: "/requests/new", label: "New Request", icon: FilePlus2 }]
-      : []),
     { to: "/notifications", label: "Notifications", icon: Bell },
   ];
+
+  const isActive = (to: string) =>
+    to === "/requests"
+      ? pathname === "/requests" || pathname.startsWith("/requests/txn")
+      : to === "/dashboard" || to === "/notifications"
+        ? pathname === to
+        : pathname === to || pathname.startsWith(`${to}/`);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -68,34 +93,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
         </div>
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {nav.map((item) => {
-            const active =
-              item.to === "/requests"
-                ? pathname === "/requests" || pathname.startsWith("/requests/txn")
-                : pathname === item.to;
+            const active = isActive(item.to);
             return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm transition-colors",
-                  active
-                    ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
-                )}
-              >
-                <item.icon className="size-4" />
-                {item.label}
-                {item.to === "/notifications" && unread.length > 0 ? (
-                  <span className="ml-auto rounded-full bg-sidebar-primary px-1.5 text-[10px] font-semibold text-sidebar-primary-foreground">
-                    {unread.length}
-                  </span>
+              <div key={item.to}>
+                <Link
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  to={item.to as any}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm transition-colors",
+                    active
+                      ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground",
+                  )}
+                >
+                  <item.icon className="size-4" />
+                  {item.label}
+                  {item.to === "/notifications" && unread.length > 0 ? (
+                    <span className="ml-auto rounded-full bg-sidebar-primary px-1.5 text-[10px] font-semibold text-sidebar-primary-foreground">
+                      {unread.length}
+                    </span>
+                  ) : null}
+                </Link>
+                {item.children && active ? (
+                  <div className="mt-1 ml-6 space-y-0.5 border-l border-sidebar-border pl-3">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.to}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        to={child.to as any}
+                        className={cn(
+                          "block rounded-sm px-2 py-1.5 text-xs transition-colors",
+                          pathname === child.to || pathname.startsWith(`${child.to}/`)
+                            ? "bg-sidebar-accent/70 font-medium text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground",
+                        )}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
                 ) : null}
-              </Link>
+              </div>
             );
           })}
         </nav>
+
         <div className="border-t border-sidebar-border p-3 text-[11px] text-sidebar-foreground/60">
           <p className="font-medium text-sidebar-foreground/80">{ROLE_DESC[session.role]}</p>
           <p className="mt-1">Frontend prototype — data stored in this browser.</p>
@@ -199,7 +243,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {nav.map((item) => (
             <Link
               key={item.to}
-              to={item.to}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              to={item.to as any}
+
               className="rounded-sm px-3 py-1.5 text-xs font-medium whitespace-nowrap text-muted-foreground data-[status=active]:bg-primary data-[status=active]:text-primary-foreground"
             >
               {item.label}
