@@ -39,8 +39,8 @@ import { formatMoney } from "@/lib/trtd/format";
 import { createRequest, useTrtdStore } from "@/lib/trtd/store";
 import { blankDetails, type LcType, type RequestType, type Session } from "@/lib/trtd/types";
 
-/** Which request the form is capturing — LC Confirmation or UPAS LC. */
-export type LcFormVariant = "CONFIRMATION" | "UPAS";
+/** Which request the form is capturing — LC Confirmation, UPAS LC or an other-bank LC. */
+export type LcFormVariant = "CONFIRMATION" | "UPAS" | "OTHER_BANK";
 
 export type TxnTypeKey = "CONF_SIGHT" | "CONF_DEFERRED" | "CONF_DISC" | "POST_ACC_DISC";
 
