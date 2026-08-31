@@ -118,7 +118,7 @@ function RequestDetailPage() {
             {formatMoney(d.currency, d.amount)}
           </p>
           <p className="text-xs text-muted-foreground">
-            Raised by {txn.raisedByName} · {txn.branch} · {formatDateTime(txn.createdAt)}
+            Raised by {txn.raisedByName} · {formatDateTime(txn.createdAt)}
           </p>
         </div>
       </div>
@@ -144,7 +144,6 @@ function RequestDetailPage() {
                   label="Module"
                   value={`${MODULE_LABEL[txn.module ?? "IMPORT"]} → ${txn.subDivision ?? "1.1 MTB Transaction Request"}`}
                 />
-                <FieldRow label="Branch / unit" value={txn.branch} />
 
                 <FieldRow
                   label="Transaction type"

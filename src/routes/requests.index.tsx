@@ -71,7 +71,6 @@ function RequestsListPage() {
         t.details.lcNumber,
         t.details.applicantName,
         t.details.beneficiaryName,
-        t.branch,
       ]
         .join(" ")
         .toLowerCase()
@@ -155,7 +154,6 @@ function RequestsListPage() {
                       >
                         {t.referenceNo}
                       </Link>
-                      <p className="text-xs text-muted-foreground">{t.branch}</p>
                     </TableCell>
                     <TableCell className="text-xs">
                       {REQUEST_TYPE_SHORT[t.requestType]}
