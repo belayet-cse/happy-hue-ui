@@ -236,10 +236,10 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
                 onChange={(e) => setRow(i, { maturityDate: e.target.value })}
               />
             </div>
-            {mode === "MATURITY_EXT" ? (
+            {withExtension ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor={`bg-ext-${i}`}>Extension (days)</Label>
+                  <Label htmlFor={`bg-ext-${i}`}>Extension for days</Label>
                   <Input
                     id={`bg-ext-${i}`}
                     type="number"
@@ -249,7 +249,7 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`bg-new-${i}`}>New maturity date</Label>
+                  <Label htmlFor={`bg-new-${i}`}>New maturity</Label>
                   <Input id={`bg-new-${i}`} value={r.newMaturityDate} readOnly disabled />
                 </div>
               </>
@@ -268,15 +268,22 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
           </div>
         ))}
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setRows((prev) => [...prev, emptyRow()])}
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add bill
-        </Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setRows((prev) => [...prev, emptyRow()])}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add bill
+          </Button>
+          <p className="text-sm">
+            <span className="text-muted-foreground">Total amount: </span>
+            <span className="font-semibold">{formatMoney(totalCurrency, total)}</span>
+          </p>
+        </div>
       </Section>
+
 
       <Section title="Documents & remarks" className="space-y-5">
         <DocumentsField
