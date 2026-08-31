@@ -86,6 +86,7 @@ const TXN_TYPES: Record<
 const VARIANT_OPTIONS: Record<LcFormVariant, TxnTypeKey[]> = {
   CONFIRMATION: ["CONF_SIGHT", "CONF_DEFERRED"],
   UPAS: ["CONF_DISC", "POST_ACC_DISC"],
+  OTHER_BANK: ["CONF_SIGHT", "CONF_DEFERRED", "CONF_DISC", "POST_ACC_DISC"],
 };
 
 const CHARGE_CATEGORIES = ["Confirmation charges", "Discounting charges"];
@@ -157,6 +158,8 @@ export function LcRequestForm({
   const [txnTypeKey, setTxnTypeKey] = useState<TxnTypeKey>(typeKeys[0] as TxnTypeKey);
   const cfg = TXN_TYPES[txnTypeKey];
 
+  const isOtherBank = variant === "OTHER_BANK";
+  const [issuingBank, setIssuingBank] = useState("");
   const [applicantCif, setApplicantCif] = useState("");
   const [applicantName, setApplicantName] = useState("");
   const [applicantAddress, setApplicantAddress] = useState("");
