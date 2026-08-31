@@ -30,7 +30,7 @@ import { formatMoney } from "@/lib/trtd/format";
 import { createRequest } from "@/lib/trtd/store";
 import { blankDetails, type BillRow, type Session } from "@/lib/trtd/types";
 
-type Mode = "REFINANCE" | "MATURITY_EXT";
+type Mode = "REFINANCE" | "MATURITY_EXT" | "OTHER_BANK";
 
 const COPY: Record<Mode, { title: string; hint: string; success: string }> = {
   REFINANCE: {
@@ -43,7 +43,13 @@ const COPY: Record<Mode, { title: string; hint: string; success: string }> = {
     hint: "Add one row per bill. Enter the extension in days — the new maturity date is calculated automatically.",
     success: "Maturity extension request submitted to FI (MFIS)",
   },
+  OTHER_BANK: {
+    title: "Bills for refinance — other bank LC",
+    hint: "All bill data is keyed in because the LC is issued by another bank. Add one row per bill; the new maturity date is calculated from the maturity date and extension days.",
+    success: "Other bank's transaction request submitted to FI (MFIS)",
+  },
 };
+
 
 const emptyRow = (): BillRow => ({
   lcNumber: "",
@@ -75,12 +81,16 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
   const [remarks, setRemarks] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  const withExtension = mode === "MATURITY_EXT" || mode === "OTHER_BANK";
+  const total = rows.reduce((s, r) => s + Number(r.billAmount || 0), 0);
+  const totalCurrency = rows[0]?.currency ?? "USD";
+
   const setRow = (i: number, patch: Partial<BillRow>) =>
     setRows((prev) =>
       prev.map((r, idx) => {
         if (idx !== i) return r;
         const next = { ...r, ...patch };
-        if (mode === "MATURITY_EXT")
+        if (withExtension)
           next.newMaturityDate = addDays(next.maturityDate, Number(next.extensionDays));
         return next;
       }),
@@ -93,7 +103,11 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
       if (!r.applicantName.trim()) return `${no}: applicant name is required`;
       if (!r.billAmount) return `${no}: bill amount is required`;
       if (!r.maturityDate) return `${no}: maturity date is required`;
-      if (mode === "MATURITY_EXT" && !Number(r.extensionDays))
+      if (mode === "OTHER_BANK" && !r.billReference.trim())
+        return `${no}: bill reference is required`;
+      if (mode === "OTHER_BANK" && !r.discountingBankName.trim())
+        return `${no}: discounting bank name is required`;
+      if (withExtension && !Number(r.extensionDays))
         return `${no}: extension days are required`;
     }
     return null;
@@ -104,12 +118,14 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
     if (err) return void toast.error(err);
 
     const first = rows[0]!;
-    const total = rows.reduce((s, r) => s + Number(r.billAmount || 0), 0);
 
     const id = createRequest({
-      requestType: mode === "REFINANCE" ? "REFINANCE" : "MATURITY_EXT",
+      requestType: mode === "MATURITY_EXT" ? "MATURITY_EXT" : "REFINANCE",
       module: "IMPORT",
-      subDivision: "1.1 MTB Transaction Request",
+      subDivision:
+        mode === "OTHER_BANK"
+          ? "Other Bank's Transaction Request"
+          : "MTB Transaction Request",
       actor: session,
       details: {
         ...blankDetails(),
@@ -121,12 +137,15 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
         tenorOfDraft:
           mode === "REFINANCE"
             ? "Refinance of accepted bills under MTB LC"
-            : "Extension of maturity of accepted bills under MTB LC",
+            : mode === "OTHER_BANK"
+              ? "Refinance of bills under an LC issued by another bank"
+              : "Extension of maturity of accepted bills under MTB LC",
         attachments: documents,
         lcCopyFileName: documents[0] ?? "",
         remarks,
       },
     });
+
 
     setPreviewOpen(false);
     toast.success(copy.success);
@@ -217,10 +236,10 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
                 onChange={(e) => setRow(i, { maturityDate: e.target.value })}
               />
             </div>
-            {mode === "MATURITY_EXT" ? (
+            {withExtension ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor={`bg-ext-${i}`}>Extension (days)</Label>
+                  <Label htmlFor={`bg-ext-${i}`}>Extension for days</Label>
                   <Input
                     id={`bg-ext-${i}`}
                     type="number"
@@ -230,7 +249,7 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`bg-new-${i}`}>New maturity date</Label>
+                  <Label htmlFor={`bg-new-${i}`}>New maturity</Label>
                   <Input id={`bg-new-${i}`} value={r.newMaturityDate} readOnly disabled />
                 </div>
               </>
@@ -249,15 +268,22 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
           </div>
         ))}
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setRows((prev) => [...prev, emptyRow()])}
-        >
-          <Plus className="mr-1 h-4 w-4" /> Add bill
-        </Button>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setRows((prev) => [...prev, emptyRow()])}
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add bill
+          </Button>
+          <p className="text-sm">
+            <span className="text-muted-foreground">Total amount: </span>
+            <span className="font-semibold">{formatMoney(totalCurrency, total)}</span>
+          </p>
+        </div>
       </Section>
+
 
       <Section title="Documents & remarks" className="space-y-5">
         <DocumentsField
@@ -304,7 +330,9 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
               value={
                 mode === "REFINANCE"
                   ? "Refinance MTB Transaction"
-                  : "Maturity Extension Request"
+                  : mode === "OTHER_BANK"
+                    ? "Other Bank's Transaction Request — refinance"
+                    : "Maturity Extension Request"
               }
             />
             <PreviewRow
@@ -312,15 +340,17 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
               value={rows
                 .map(
                   (r, i) =>
-                    `${i + 1}. ${r.lcNumber} / ${r.billReference || "—"} — ${formatMoney(r.currency, r.billAmount)} — matures ${r.maturityDate}${
-                      mode === "MATURITY_EXT"
+                    `${i + 1}. ${r.lcNumber} / ${r.billReference || "—"} — ${r.applicantName} — ${formatMoney(r.currency, r.billAmount)} — ${r.discountingBankName || "—"} — matures ${r.maturityDate}${
+                      withExtension
                         ? ` → +${r.extensionDays}d → ${r.newMaturityDate || "—"}`
                         : ""
                     }`,
                 )
                 .join("\n")}
             />
+            <PreviewRow label="Total amount" value={formatMoney(totalCurrency, total)} />
             <PreviewRow label="Documents attached" value={documents.join(", ")} />
+
             <PreviewRow label="Remarks" value={remarks} />
           </dl>
           <DialogFooter>

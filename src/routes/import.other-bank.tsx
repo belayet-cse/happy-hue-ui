@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/trtd/AppShell";
 import { PageHeader, useGuard } from "@/components/trtd/Guard";
-import { LcRequestForm } from "@/components/trtd/forms/LcRequestForm";
+import { BillGridForm } from "@/components/trtd/forms/BillGridForm";
 
 export const Route = createFileRoute("/import/other-bank")({
   head: () => ({
@@ -10,13 +10,13 @@ export const Route = createFileRoute("/import/other-bank")({
       {
         name: "description",
         content:
-          "Confirmation, discounting and refinance requests raised against LCs issued by other banks.",
+          "Refinance request for one or more bills under LCs issued by banks other than MTB.",
       },
       { property: "og:title", content: "Other Bank Transaction Request — Import" },
       {
         property: "og:description",
         content:
-          "Confirmation, discounting and refinance requests raised against LCs issued by other banks.",
+          "Refinance request for one or more bills under LCs issued by banks other than MTB.",
       },
     ],
   }),
@@ -29,10 +29,11 @@ function OtherBankPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Import → Other Bank's Transaction Request"
-        description="Confirmation or discounting request against an LC issued by a bank other than MTB."
+        title="Other Bank's Transaction Request"
+        description="Import → Other Bank's Transaction Request"
       />
-      <LcRequestForm session={session} variant="OTHER_BANK" />
+      <BillGridForm session={session} mode="OTHER_BANK" />
     </AppShell>
   );
 }
+
