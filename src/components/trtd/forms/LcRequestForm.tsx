@@ -39,8 +39,8 @@ import { formatMoney } from "@/lib/trtd/format";
 import { createRequest, useTrtdStore } from "@/lib/trtd/store";
 import { blankDetails, type LcType, type RequestType, type Session } from "@/lib/trtd/types";
 
-/** Which request the form is capturing — LC Confirmation or UPAS LC. */
-export type LcFormVariant = "CONFIRMATION" | "UPAS";
+/** Which request the form is capturing — LC Confirmation, UPAS LC or an other-bank LC. */
+export type LcFormVariant = "CONFIRMATION" | "UPAS" | "OTHER_BANK";
 
 export type TxnTypeKey = "CONF_SIGHT" | "CONF_DEFERRED" | "CONF_DISC" | "POST_ACC_DISC";
 
@@ -86,6 +86,7 @@ const TXN_TYPES: Record<
 const VARIANT_OPTIONS: Record<LcFormVariant, TxnTypeKey[]> = {
   CONFIRMATION: ["CONF_SIGHT", "CONF_DEFERRED"],
   UPAS: ["CONF_DISC", "POST_ACC_DISC"],
+  OTHER_BANK: ["CONF_SIGHT", "CONF_DEFERRED", "CONF_DISC", "POST_ACC_DISC"],
 };
 
 const CHARGE_CATEGORIES = ["Confirmation charges", "Discounting charges"];
@@ -157,6 +158,8 @@ export function LcRequestForm({
   const [txnTypeKey, setTxnTypeKey] = useState<TxnTypeKey>(typeKeys[0] as TxnTypeKey);
   const cfg = TXN_TYPES[txnTypeKey];
 
+  const isOtherBank = variant === "OTHER_BANK";
+  const [issuingBank, setIssuingBank] = useState("");
   const [applicantCif, setApplicantCif] = useState("");
   const [applicantName, setApplicantName] = useState("");
   const [applicantAddress, setApplicantAddress] = useState("");
@@ -213,6 +216,8 @@ export function LcRequestForm({
   const total = lines.reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
 
   const validate = (): string | null => {
+    if (isOtherBank && !issuingBank.trim()) return "Issuing bank is required";
+    if (isOtherBank && !lcNumber.trim()) return "LC number is required";
     if (!applicantName.trim()) return "Applicant full name is required";
     if (!beneficiaryName.trim()) return "Beneficiary full name is required";
     if (!lines.length) return "At least one LC details block is required";
@@ -241,10 +246,13 @@ export function LcRequestForm({
       createRequest({
         requestType: cfg.requestType,
         module: "IMPORT",
-        subDivision: "1.1 MTB Transaction Request",
+        subDivision: isOtherBank
+          ? "1.2 Other Bank's Transaction Request"
+          : "1.1 MTB Transaction Request",
         actor: session,
         details: {
           ...blankDetails(),
+          issuingBank: isOtherBank ? issuingBank.trim() : undefined,
           lcNumber,
           dateOfIssue,
           currency: l.currency,
@@ -294,8 +302,28 @@ export function LcRequestForm({
           <Label>System transaction reference number</Label>
           <Input value="Auto generated on submit" readOnly disabled />
         </div>
+        {isOtherBank ? (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="issuing-bank">
+              Issuing bank<span className="ml-0.5 text-destructive">*</span>
+            </Label>
+            <Input
+              id="issuing-bank"
+              list="advise-book"
+              placeholder="Bank that issued the LC"
+              value={issuingBank}
+              onChange={(e) => setIssuingBank(e.target.value)}
+            />
+          </div>
+        ) : null}
         <div className="space-y-2 sm:col-span-2">
-          <Label>{variant === "UPAS" ? "UPAS LC request type" : "Transaction type"}</Label>
+          <Label>
+            {variant === "UPAS"
+              ? "UPAS LC request type"
+              : isOtherBank
+                ? "Requested facility"
+                : "Transaction type"}
+          </Label>
           <Select value={txnTypeKey} onValueChange={(v) => changeType(v as TxnTypeKey)}>
             <SelectTrigger className="w-full">
               <SelectValue />
@@ -310,7 +338,9 @@ export function LcRequestForm({
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lc-no">LC number (if already issued)</Label>
+          <Label htmlFor="lc-no">
+            LC number{isOtherBank ? <span className="ml-0.5 text-destructive">*</span> : " (if already issued)"}
+          </Label>
           <Input id="lc-no" value={lcNumber} onChange={(e) => setLcNumber(e.target.value)} />
         </div>
         <div className="space-y-2">
@@ -705,6 +735,9 @@ export function LcRequestForm({
                 Transaction
               </p>
               <PreviewRow label="Request type" value={cfg.label} />
+              {isOtherBank ? (
+                <PreviewRow label="Issuing bank" value={issuingBank} />
+              ) : null}
               <PreviewRow label="LC number" value={lcNumber || "—"} />
               <PreviewRow label="Date of issue" value={dateOfIssue || "—"} />
             </div>

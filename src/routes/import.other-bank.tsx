@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/trtd/AppShell";
 import { PageHeader, useGuard } from "@/components/trtd/Guard";
-import { PhasePlaceholder } from "@/components/trtd/Placeholder";
+import { LcRequestForm } from "@/components/trtd/forms/LcRequestForm";
 
 export const Route = createFileRoute("/import/other-bank")({
   head: () => ({
@@ -29,29 +29,10 @@ function OtherBankPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Import → Other Bank Transaction Request"
-        description="1.2 — requests against LCs issued by banks other than MTB."
+        title="Import → Other Bank's Transaction Request"
+        description="Confirmation or discounting request against an LC issued by a bank other than MTB."
       />
-      <PhasePlaceholder
-        phase="a later phase"
-        fields={[
-          "Issuing bank",
-          "LC number & date of issue",
-          "Applicant",
-          "Beneficiary",
-          "LC value, currency & tolerance",
-          "Tenor",
-          "Goods description",
-          "Country of origin",
-          "Latest date of shipment",
-          "Date & place of expiry",
-          "Port of loading / discharge",
-          "Bill details",
-          "Charge category & account of",
-          "Documents attached",
-          "Remarks",
-        ]}
-      />
+      <LcRequestForm session={session} variant="OTHER_BANK" />
     </AppShell>
   );
 }

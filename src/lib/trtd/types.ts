@@ -16,7 +16,8 @@ export type RequestType =
   | "AMENDMENT"
   | "ADVANCE_TT"
   | "REFINANCE"
-  | "MATURITY_EXT";
+  | "MATURITY_EXT"
+  | "NON_DESIGNATED";
 
 export type TxnStatus =
   | "SUBMITTED"
@@ -38,6 +39,7 @@ export const REQUEST_TYPE_LABEL: Record<RequestType, string> = {
   ADVANCE_TT: "Advance TT Request",
   REFINANCE: "Refinance MTB Transaction",
   MATURITY_EXT: "Maturity Extension Request",
+  NON_DESIGNATED: "Non-Designated Presentation",
 };
 
 export const REQUEST_TYPE_SHORT: Record<RequestType, string> = {
@@ -48,6 +50,7 @@ export const REQUEST_TYPE_SHORT: Record<RequestType, string> = {
   ADVANCE_TT: "Advance TT",
   REFINANCE: "Refinance",
   MATURITY_EXT: "Maturity Extension",
+  NON_DESIGNATED: "Non-Designated",
 };
 
 export const LC_TYPE_LABEL: Record<LcType, string> = {
@@ -108,6 +111,15 @@ export interface RequestDetails {
   chargesOnAccountOf?: string | undefined;
   /** BRD 14 — advise through bank */
   adviseThroughBank?: string | undefined;
+  /** Issuing bank — Import 1.2 Other Bank's Transaction Request */
+  issuingBank?: string | undefined;
+  /** Import 1.3 Non-Designated Presentation */
+  presentingBank?: string | undefined;
+  designatedBank?: string | undefined;
+  documentSetReference?: string | undefined;
+  presentationDate?: string | undefined;
+  maturityDate?: string | undefined;
+  nonDesignatedReason?: string | undefined;
   /** Amendment request lines entered by RM */
   amendmentRequests?: string[] | undefined;
   /** Bill rows for Refinance / Maturity Extension / other-bank requests */
