@@ -77,7 +77,10 @@ function MtbFormPage() {
         title={meta.title}
         description={`${meta.code} — Import → MTB Transaction Request`}
       />
-      {key === "lc-request" ? <LcRequestForm session={session} /> : null}
+      {key === "lc-confirmation" ? (
+        <LcRequestForm session={session} variant="CONFIRMATION" />
+      ) : null}
+      {key === "upas-lc" ? <LcRequestForm session={session} variant="UPAS" /> : null}
       {key === "amendment" ? <AmendmentForm session={session} /> : null}
       {key === "advance-tt" ? <AdvanceTtForm session={session} /> : null}
       {key === "refinance" ? <BillGridForm mode="REFINANCE" session={session} /> : null}
