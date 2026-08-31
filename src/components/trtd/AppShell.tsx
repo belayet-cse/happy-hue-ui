@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Ship,
 } from "lucide-react";
+import { MTB_FORMS, type MtbFormKey } from "@/lib/trtd/forms";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -48,11 +49,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const mine = notifications.filter((n) => n.toRole === session.role);
   const unread = mine.filter((n) => !n.read);
 
+type NavChild = {
+    to: string;
+    label: string;
+    params?: Record<string, string>;
+    children?: NavChild[];
+  };
+
+  const mtbFormLinks: NavChild[] = (Object.keys(MTB_FORMS) as MtbFormKey[]).map(
+    (key) => ({
+      to: `/import/mtb/${key}`,
+      label: MTB_FORMS[key].title,
+    }),
+  );
+
   const nav: {
     to: string;
     label: string;
     icon: typeof Files;
-    children?: { to: string; label: string; params?: Record<string, string> }[];
+    children?: NavChild[];
   }[] = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     {
@@ -60,9 +75,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       label: "Import",
       icon: Ship,
       children: [
-        { to: "/import/mtb", label: "1.1 MTB Transaction Request" },
-        { to: "/import/other-bank", label: "1.2 Other Bank Transaction Request" },
-        { to: "/import/non-designated", label: "1.3 Non-Designated Presentation" },
+        {
+          to: "/import/mtb",
+          label: "MTB Transaction Request",
+          children: mtbFormLinks,
+        },
+        { to: "/import/other-bank", label: "Other Bank Transaction Request" },
+        { to: "/import/non-designated", label: "Non-Designated Presentation" },
       ],
     },
     {
@@ -72,11 +91,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       children: [
         {
           to: "/export/advising-confirmation",
-          label: "2.1 Export LC Advising & Confirmation",
+          label: "Export LC Advising & Confirmation",
         },
         {
           to: "/export/negotiation-discounting",
-          label: "2.2 Export Bill Negotiation / Discounting",
+          label: "Export Bill Negotiation / Discounting",
         },
       ],
     },
@@ -85,22 +104,56 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       label: "Guarantee",
       icon: ShieldCheck,
       children: [
-        { to: "/guarantee/counter-guarantee", label: "3.1 Counter Guarantee Issuance" },
-        { to: "/guarantee/advising", label: "3.2 Guarantee Advising" },
+        { to: "/guarantee/counter-guarantee", label: "Counter Guarantee Issuance" },
+        { to: "/guarantee/advising", label: "Guarantee Advising" },
       ],
     },
     { to: "/reports", label: "Reports & Analytics", icon: BarChart3 },
     { to: "/requests", label: "Transactions", icon: Files },
     { to: "/notifications", label: "Notifications", icon: Bell },
-
   ];
 
-  const isActive = (to: string) =>
+const isActive = (to: string) =>
     to === "/requests"
       ? pathname === "/requests" || pathname.startsWith("/requests/txn")
       : to === "/dashboard" || to === "/notifications"
         ? pathname === to
         : pathname === to || pathname.startsWith(`${to}/`);
+
+  const isPathActive = (to: string) =>
+    pathname === to || pathname.startsWith(`${to}/`);
+
+  const hasActiveDescendant = (children?: NavChild[]): boolean =>
+    (children ?? []).some(
+      (c) => isPathActive(c.to) || hasActiveDescendant(c.children),
+    );
+
+  const renderLinks = (children: NavChild[]): React.ReactNode =>
+    children.map((child) => {
+      const childActive = isPathActive(child.to);
+      const childExpanded = childActive || hasActiveDescendant(child.children);
+      return (
+        <div key={child.to}>
+          <Link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            to={child.to as any}
+            className={cn(
+              "block rounded-sm px-2 py-1.5 text-xs transition-colors",
+              childActive
+                ? "bg-sidebar-accent/70 font-medium text-sidebar-accent-foreground"
+                : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground",
+            )}
+          >
+            {child.label}
+          </Link>
+          {child.children && childExpanded ? (
+            <div className="mt-0.5 ml-3 space-y-0.5 border-l border-sidebar-border pl-3">
+              {renderLinks(child.children)}
+            </div>
+          ) : null}
+        </div>
+      );
+    });
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -116,9 +169,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           </div>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+<nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {nav.map((item) => {
             const active = isActive(item.to);
+            const expanded = active || hasActiveDescendant(item.children);
             return (
               <div key={item.to}>
                 <Link
@@ -139,23 +193,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </span>
                   ) : null}
                 </Link>
-                {item.children && active ? (
+                {item.children && expanded ? (
                   <div className="mt-1 ml-6 space-y-0.5 border-l border-sidebar-border pl-3">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.to}
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        to={child.to as any}
-                        className={cn(
-                          "block rounded-sm px-2 py-1.5 text-xs transition-colors",
-                          pathname === child.to || pathname.startsWith(`${child.to}/`)
-                            ? "bg-sidebar-accent/70 font-medium text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground",
-                        )}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
+                    {renderLinks(item.children)}
                   </div>
                 ) : null}
               </div>
