@@ -134,9 +134,10 @@ type NavChild = {
             </p>
           </div>
         </div>
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+<nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {nav.map((item) => {
             const active = isActive(item.to);
+            const expanded = active || hasActiveDescendant(item.children);
             return (
               <div key={item.to}>
                 <Link
@@ -157,23 +158,9 @@ type NavChild = {
                     </span>
                   ) : null}
                 </Link>
-                {item.children && active ? (
+                {item.children && expanded ? (
                   <div className="mt-1 ml-6 space-y-0.5 border-l border-sidebar-border pl-3">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.to}
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        to={child.to as any}
-                        className={cn(
-                          "block rounded-sm px-2 py-1.5 text-xs transition-colors",
-                          pathname === child.to || pathname.startsWith(`${child.to}/`)
-                            ? "bg-sidebar-accent/70 font-medium text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground",
-                        )}
-                      >
-                        {child.label}
-                      </Link>
-                    ))}
+                    {renderLinks(item.children)}
                   </div>
                 ) : null}
               </div>
