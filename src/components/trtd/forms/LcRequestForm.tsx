@@ -15,6 +15,14 @@ import {
 } from "@/components/trtd/FormKit";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -164,6 +172,7 @@ export function LcRequestForm({
   const [lines, setLines] = useState<Line[]>([emptyLine(typeKeys[0] as TxnTypeKey)]);
   const [documents, setDocuments] = useState<string[]>([]);
   const [remarks, setRemarks] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const applicantBook = useMemo(() => {
     const map = new Map<string, string>();
@@ -211,9 +220,9 @@ export function LcRequestForm({
   const validate = (): string | null => {
     if (!applicantName.trim()) return "Applicant full name is required";
     if (!beneficiaryName.trim()) return "Beneficiary full name is required";
-    if (!lines.length) return "At least one transaction detail is required";
+    if (!lines.length) return "At least one LC details block is required";
     for (const [i, l] of lines.entries()) {
-      const no = `Transaction ${String(i + 1).padStart(2, "0")}`;
+      const no = `LC ${String(i + 1).padStart(2, "0")}`;
       if (!Number(l.amount)) return `${no}: LC value is required`;
       if (!l.goods.trim()) return `${no}: goods description is required`;
       if (!l.chargeCategories.length) return `${no}: select at least one charge category`;
@@ -395,11 +404,11 @@ export function LcRequestForm({
         </div>
       </Section>
 
-      <Section title="Transaction details" className="space-y-5">
+      <Section title="LC details" className="space-y-5">
         <p className="text-xs text-muted-foreground">
           LC value, tolerance, tenor, goods, origin, shipment and expiry, ports, advise
-          through bank and charges are captured together. Add another detail block for each
-          additional transaction of the same beneficiary — each block gets its own system
+          through bank and charges are captured together. Add another LC details block for
+          each additional LC of the same beneficiary — each block gets its own system
           transaction reference.
         </p>
 
@@ -407,7 +416,7 @@ export function LcRequestForm({
           <div key={i} className="space-y-4 rounded-md border border-border p-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">
-                Transaction {String(i + 1).padStart(2, "0")}
+                LC {String(i + 1).padStart(2, "0")} details
               </p>
               <Button
                 type="button"
@@ -473,10 +482,13 @@ export function LcRequestForm({
             </div>
 
             <div className="space-y-2">
-              <Label>Sample tenor text</Label>
-              <Select value={l.tenor} onValueChange={(v) => setLine(i, { tenor: v })}>
+              <Label>Tenor</Label>
+              <Select
+                value={cfg.tenorSamples.includes(l.tenor) ? l.tenor : ""}
+                onValueChange={(v) => setLine(i, { tenor: v })}
+              >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a sample tenor" />
+                  <SelectValue placeholder="Select tenor" />
                 </SelectTrigger>
                 <SelectContent>
                   {cfg.tenorSamples.map((s) => (
@@ -647,7 +659,7 @@ export function LcRequestForm({
             size="sm"
             onClick={() => setLines((prev) => [...prev, emptyLine(txnTypeKey)])}
           >
-            <Plus className="mr-1 h-4 w-4" /> Add another transaction
+            <Plus className="mr-1 h-4 w-4" /> Add another LC details
           </Button>
           <p className="text-sm">
             <span className="text-muted-foreground">Total amount value: </span>
@@ -670,10 +682,122 @@ export function LcRequestForm({
       </Section>
 
       <div className="flex flex-wrap justify-end gap-2">
-        <Button type="button" onClick={submit}>
+        <Button
+          type="button"
+          onClick={() => {
+            const err = validate();
+            if (err) return void toast.error(err);
+            setPreviewOpen(true);
+          }}
+        >
           Submit to FI
         </Button>
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Preview transaction request</DialogTitle>
+            <DialogDescription>
+              Review the request before it is submitted to the FI desk. Nothing is sent until
+              you confirm.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 text-sm">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Transaction
+              </p>
+              <PreviewRow label="Request type" value={cfg.label} />
+              <PreviewRow label="LC number" value={lcNumber || "—"} />
+              <PreviewRow label="Date of issue" value={dateOfIssue || "—"} />
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Applicant
+              </p>
+              <PreviewRow label="Name" value={applicantName} />
+              <PreviewRow label="Address" value={applicantAddress || "—"} />
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                Beneficiary
+              </p>
+              <PreviewRow label="Name" value={beneficiaryName} />
+              <PreviewRow label="Address" value={beneficiaryAddress || "—"} />
+            </div>
+
+            {lines.map((l, i) => (
+              <div key={i} className="space-y-1 rounded-md border border-border p-3">
+                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  LC {String(i + 1).padStart(2, "0")} details
+                </p>
+                <PreviewRow
+                  label="LC value"
+                  value={`${formatMoney(l.currency, Number(l.amount) || 0)} (tolerance ${l.tolerance})`}
+                />
+                <PreviewRow label="Tenor" value={l.tenor || "—"} />
+                <PreviewRow label="Goods description" value={l.goods} />
+                <PreviewRow label="Country of origin" value={l.origins.join(", ") || "—"} />
+                <PreviewRow label="Latest date of shipment" value={l.latestShipmentDate} />
+                <PreviewRow
+                  label="Date and place of expiry"
+                  value={`${l.expiryDate}${l.placeOfExpiry ? ` — ${l.placeOfExpiry}` : ""}`}
+                />
+                <PreviewRow label="Port of loading" value={l.loadingPorts.join(", ") || "—"} />
+                <PreviewRow
+                  label="Port of discharge"
+                  value={l.dischargePorts.join(", ") || "—"}
+                />
+                <PreviewRow
+                  label="Advise through bank"
+                  value={l.adviseThroughBank || "—"}
+                />
+                <PreviewRow label="Charges" value={chargesLabelOf(l)} />
+              </div>
+            ))}
+
+            <div className="space-y-1">
+              <PreviewRow
+                label="Total amount value"
+                value={formatMoney(currency, total)}
+              />
+              <PreviewRow
+                label="Documents attached"
+                value={documents.length ? documents.join(", ") : "None"}
+              />
+              <PreviewRow label="Remarks" value={remarks || "—"} />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setPreviewOpen(false)}>
+              Back to edit
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setPreviewOpen(false);
+                submit();
+              }}
+            >
+              Confirm & submit to FI
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function PreviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-3 py-0.5">
+      <span className="w-48 shrink-0 text-xs text-muted-foreground">{label}</span>
+      <span className="min-w-0 break-words">{value}</span>
     </div>
   );
 }
