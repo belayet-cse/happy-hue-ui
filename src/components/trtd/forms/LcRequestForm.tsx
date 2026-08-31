@@ -154,7 +154,6 @@ export function LcRequestForm({
   const [txnTypeKey, setTxnTypeKey] = useState<TxnTypeKey>(typeKeys[0] as TxnTypeKey);
   const cfg = TXN_TYPES[txnTypeKey];
 
-  const [branch, setBranch] = useState("Principal Branch, Dhaka");
   const [applicantCif, setApplicantCif] = useState("");
   const [applicantName, setApplicantName] = useState("");
   const [applicantAddress, setApplicantAddress] = useState("");
@@ -239,7 +238,6 @@ export function LcRequestForm({
         requestType: cfg.requestType,
         module: "IMPORT",
         subDivision: "1.1 MTB Transaction Request",
-        branch,
         actor: session,
         details: {
           ...blankDetails(),
@@ -291,10 +289,6 @@ export function LcRequestForm({
         <div className="space-y-2">
           <Label>System transaction reference number</Label>
           <Input value="Auto generated on submit" readOnly disabled />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="branch">Branch / unit</Label>
-          <Input id="branch" value={branch} onChange={(e) => setBranch(e.target.value)} />
         </div>
         <div className="space-y-2 sm:col-span-2">
           <Label>{variant === "UPAS" ? "UPAS LC request type" : "Transaction type"}</Label>

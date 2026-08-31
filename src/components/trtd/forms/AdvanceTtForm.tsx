@@ -1,13 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  COUNTRIES,
-  CURRENCIES,
-  DocumentsField,
-  PreviewRow,
-  Section,
-} from "@/components/trtd/FormKit";
+import { CURRENCIES, DocumentsField, PreviewRow, Section } from "@/components/trtd/FormKit";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,25 +24,24 @@ import { formatMoney } from "@/lib/trtd/format";
 import { createRequest, useTrtdStore } from "@/lib/trtd/store";
 import { blankDetails, type Session } from "@/lib/trtd/types";
 
-/** 1.1.3 Advance TT Request. */
+/** Advance TT Request. */
 export function AdvanceTtForm({ session }: { session: Session }) {
   const navigate = useNavigate();
   const { transactions } = useTrtdStore();
 
-  const [branch, setBranch] = useState("Principal Branch, Dhaka");
   const [applicantCif, setApplicantCif] = useState("");
   const [applicantName, setApplicantName] = useState("");
   const [applicantAddress, setApplicantAddress] = useState("");
   const [beneficiaryName, setBeneficiaryName] = useState("");
   const [beneficiaryAddress, setBeneficiaryAddress] = useState("");
-  const [beneficiaryBank, setBeneficiaryBank] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [amount, setAmount] = useState("");
   const [contractRef, setContractRef] = useState("");
   const [contractDate, setContractDate] = useState("");
   const [goods, setGoods] = useState("");
-  const [origin, setOrigin] = useState("");
-  const [expectedShipment, setExpectedShipment] = useState("");
+  const [tenor, setTenor] = useState("");
+  const [adviseThroughBank, setAdviseThroughBank] = useState("");
+  const [charges, setCharges] = useState("");
   const [documents, setDocuments] = useState<string[]>([]);
   const [remarks, setRemarks] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -62,11 +55,19 @@ export function AdvanceTtForm({ session }: { session: Session }) {
     return map;
   }, [transactions]);
 
+  const beneficiaryBook = useMemo(() => {
+    const map = new Map<string, string>();
+    transactions.forEach((t) => {
+      if (t.details.beneficiaryName)
+        map.set(t.details.beneficiaryName, t.details.beneficiaryAddress);
+    });
+    return map;
+  }, [transactions]);
+
   const validate = (): string | null => {
     if (!applicantName.trim()) return "Applicant full name is required";
     if (!beneficiaryName.trim()) return "Beneficiary full name is required";
     if (!Number(amount)) return "TT amount is required";
-    if (!beneficiaryBank.trim()) return "Beneficiary bank is required";
     return null;
   };
 
@@ -78,7 +79,6 @@ export function AdvanceTtForm({ session }: { session: Session }) {
       requestType: "ADVANCE_TT",
       module: "IMPORT",
       subDivision: "1.1 MTB Transaction Request",
-      branch,
       actor: session,
       details: {
         ...blankDetails(),
@@ -90,11 +90,11 @@ export function AdvanceTtForm({ session }: { session: Session }) {
         applicantAddress,
         beneficiaryName: beneficiaryName.trim(),
         beneficiaryAddress,
-        advisingBank: beneficiaryBank,
         goodsDescription: goods,
-        countryOfOrigin: origin,
-        latestShipmentDate: expectedShipment,
-        tenorOfDraft: "Advance payment by TT against sales contract / pro-forma invoice",
+        tenorOfDraft: tenor,
+        adviseThroughBank,
+        advisingBank: adviseThroughBank,
+        chargesBorneBy: charges,
         attachments: documents,
         lcCopyFileName: documents[0] ?? "",
         remarks,
@@ -108,15 +108,7 @@ export function AdvanceTtForm({ session }: { session: Session }) {
 
   return (
     <div className="space-y-6">
-      <Section title="Applicant & beneficiary">
-        <div className="space-y-2">
-          <Label htmlFor="tt-branch">Branch / unit</Label>
-          <Input
-            id="tt-branch"
-            value={branch}
-            onChange={(e) => setBranch(e.target.value)}
-          />
-        </div>
+      <Section title="Applicant">
         <div className="space-y-2">
           <Label htmlFor="tt-cif">Applicant CIF</Label>
           <Input
@@ -145,7 +137,7 @@ export function AdvanceTtForm({ session }: { session: Session }) {
             ))}
           </datalist>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="tt-app-addr">Applicant address</Label>
           <Textarea
             id="tt-app-addr"
@@ -154,15 +146,28 @@ export function AdvanceTtForm({ session }: { session: Session }) {
             onChange={(e) => setApplicantAddress(e.target.value)}
           />
         </div>
+      </Section>
+
+      <Section title="Beneficiary">
         <div className="space-y-2">
           <Label htmlFor="tt-ben">
             Beneficiary full name<span className="ml-0.5 text-destructive">*</span>
           </Label>
           <Input
             id="tt-ben"
+            list="tt-beneficiaries"
             value={beneficiaryName}
-            onChange={(e) => setBeneficiaryName(e.target.value)}
+            onChange={(e) => {
+              setBeneficiaryName(e.target.value);
+              const hit = beneficiaryBook.get(e.target.value);
+              if (hit) setBeneficiaryAddress(hit);
+            }}
           />
+          <datalist id="tt-beneficiaries">
+            {Array.from(beneficiaryBook.keys()).map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
         </div>
         <div className="space-y-2">
           <Label htmlFor="tt-ben-addr">Beneficiary address</Label>
@@ -171,17 +176,6 @@ export function AdvanceTtForm({ session }: { session: Session }) {
             rows={2}
             value={beneficiaryAddress}
             onChange={(e) => setBeneficiaryAddress(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="tt-bank">
-            Beneficiary bank (with SWIFT)<span className="ml-0.5 text-destructive">*</span>
-          </Label>
-          <Input
-            id="tt-bank"
-            placeholder="e.g. Bank of China, Shanghai — BKCHCNBJ300"
-            value={beneficiaryBank}
-            onChange={(e) => setBeneficiaryBank(e.target.value)}
           />
         </div>
       </Section>
@@ -233,31 +227,33 @@ export function AdvanceTtForm({ session }: { session: Session }) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="tt-goods">Goods description</Label>
+          <Label htmlFor="tt-tenor">Tenor</Label>
+          <Input
+            id="tt-tenor"
+            placeholder="e.g. Advance payment, 100% before shipment"
+            value={tenor}
+            onChange={(e) => setTenor(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="tt-goods">Description of goods</Label>
           <Input id="tt-goods" value={goods} onChange={(e) => setGoods(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label>Country of origin</Label>
-          <Select value={origin} onValueChange={setOrigin}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select country" />
-            </SelectTrigger>
-            <SelectContent>
-              {COUNTRIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="tt-advise">Advise through bank</Label>
+          <Input
+            id="tt-advise"
+            value={adviseThroughBank}
+            onChange={(e) => setAdviseThroughBank(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="tt-ship">Expected shipment date</Label>
+          <Label htmlFor="tt-charges">Charges</Label>
           <Input
-            id="tt-ship"
-            type="date"
-            value={expectedShipment}
-            onChange={(e) => setExpectedShipment(e.target.value)}
+            id="tt-charges"
+            placeholder="e.g. All charges outside Bangladesh on beneficiary account"
+            value={charges}
+            onChange={(e) => setCharges(e.target.value)}
           />
         </div>
       </Section>
@@ -303,29 +299,13 @@ export function AdvanceTtForm({ session }: { session: Session }) {
           </DialogHeader>
           <dl className="divide-y divide-border text-sm">
             <PreviewRow label="Request" value="Advance TT Request" />
-            <PreviewRow label="Branch / unit" value={branch} />
-            <PreviewRow
-              label="Applicant"
-              value={[applicantCif, applicantName, applicantAddress]
-                .filter(Boolean)
-                .join(" — ")}
-            />
-            <PreviewRow
-              label="Beneficiary"
-              value={[beneficiaryName, beneficiaryAddress].filter(Boolean).join(" — ")}
-            />
-            <PreviewRow label="Beneficiary bank" value={beneficiaryBank} />
-            <PreviewRow
-              label="Advance TT amount"
-              value={formatMoney(currency, Number(amount) || 0)}
-            />
-            <PreviewRow
-              label="Contract / PI"
-              value={[contractRef, contractDate].filter(Boolean).join(" dated ")}
-            />
-            <PreviewRow label="Goods description" value={goods} />
-            <PreviewRow label="Country of origin" value={origin} />
-            <PreviewRow label="Expected shipment date" value={expectedShipment} />
+            <PreviewRow label="Applicant" value={applicantName} />
+            <PreviewRow label="Beneficiary" value={beneficiaryName} />
+            <PreviewRow label="Amount" value={formatMoney(currency, Number(amount) || 0)} />
+            <PreviewRow label="Tenor" value={tenor} />
+            <PreviewRow label="Description of goods" value={goods} />
+            <PreviewRow label="Advise through bank" value={adviseThroughBank} />
+            <PreviewRow label="Charges" value={charges} />
             <PreviewRow label="Documents attached" value={documents.join(", ")} />
             <PreviewRow label="Remarks" value={remarks} />
           </dl>

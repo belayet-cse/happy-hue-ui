@@ -234,7 +234,7 @@ export function createRequest(input: {
   requestType: RequestType;
   module?: ModuleKey;
   subDivision?: string;
-  branch: string;
+  branch?: string;
   details: RequestDetails;
   actor: Session;
 }): string {
@@ -251,7 +251,7 @@ export function createRequest(input: {
     createdAt: nowIso(),
     updatedAt: nowIso(),
     raisedByName: `${input.actor.name} (RM)`,
-    branch: input.branch,
+    branch: input.branch ?? "",
     details: input.details,
 
     quotes: [],

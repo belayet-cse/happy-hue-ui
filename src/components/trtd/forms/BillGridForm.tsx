@@ -70,7 +70,6 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
   const navigate = useNavigate();
   const copy = COPY[mode];
 
-  const [branch, setBranch] = useState("Principal Branch, Dhaka");
   const [rows, setRows] = useState<BillRow[]>([emptyRow()]);
   const [documents, setDocuments] = useState<string[]>([]);
   const [remarks, setRemarks] = useState("");
@@ -111,7 +110,6 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
       requestType: mode === "REFINANCE" ? "REFINANCE" : "MATURITY_EXT",
       module: "IMPORT",
       subDivision: "1.1 MTB Transaction Request",
-      branch,
       actor: session,
       details: {
         ...blankDetails(),
@@ -141,14 +139,6 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
         <div className="space-y-2">
           <Label>System transaction reference number</Label>
           <Input value="Auto generated on submit" readOnly disabled />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="bg-branch">Branch / unit</Label>
-          <Input
-            id="bg-branch"
-            value={branch}
-            onChange={(e) => setBranch(e.target.value)}
-          />
         </div>
       </Section>
 
@@ -317,7 +307,6 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
                   : "Maturity Extension Request"
               }
             />
-            <PreviewRow label="Branch / unit" value={branch} />
             <PreviewRow
               label="Bills"
               value={rows
