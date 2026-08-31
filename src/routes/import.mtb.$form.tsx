@@ -46,7 +46,7 @@ function MtbFormPage() {
             That request form does not exist.{" "}
             <Link
               to="/import/mtb/$form"
-              params={{ form: "lc-request" }}
+              params={{ form: "lc-confirmation" }}
               className="text-primary hover:underline"
             >
               Go to LC Confirmation request
