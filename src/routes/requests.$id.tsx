@@ -170,26 +170,32 @@ function RequestDetailPage() {
                 <FieldRow label="Beneficiary address" value={d.beneficiaryAddress} />
               </FieldTable>
 
-              <FieldTable title="LC value & schedule">
-                <FieldRow label="LC value & currency" value={formatMoney(d.currency, d.amount)} />
-                <FieldRow label="Tolerance (+/-)" value={d.tolerance} />
-                <FieldRow label="LC number" value={d.lcNumber} />
-                <FieldRow label="Date of issue" value={formatDate(d.dateOfIssue)} />
-                <FieldRow
-                  label="Latest date of shipment"
-                  value={formatDate(d.latestShipmentDate)}
-                />
-                <FieldRow
-                  label="Expiry date of LC"
-                  value={`${formatDate(d.expiryDate)}${d.placeOfExpiry ? ` at ${d.placeOfExpiry}` : ""}`}
-                />
-                <FieldRow
-                  label="Expected payment date"
-                  value={d.expectedPaymentDate ? formatDate(d.expectedPaymentDate) : ""}
-                />
-                <FieldRow label="Advising / nominated bank" value={d.advisingBank} />
-                <FieldRow label="Period for presentation" value={d.presentationPeriod} />
-              </FieldTable>
+              {d.bills?.length ? null : (
+                <FieldTable title="LC value & schedule">
+                  <FieldRow
+                    label="LC value & currency"
+                    value={formatMoney(d.currency, d.amount)}
+                  />
+                  <FieldRow label="Tolerance (+/-)" value={d.tolerance} />
+                  <FieldRow label="LC number" value={d.lcNumber} />
+                  <FieldRow label="Date of issue" value={formatDate(d.dateOfIssue)} />
+                  <FieldRow
+                    label="Latest date of shipment"
+                    value={formatDate(d.latestShipmentDate)}
+                  />
+                  <FieldRow
+                    label="Expiry date of LC"
+                    value={`${formatDate(d.expiryDate)}${d.placeOfExpiry ? ` at ${d.placeOfExpiry}` : ""}`}
+                  />
+                  <FieldRow
+                    label="Expected payment date"
+                    value={d.expectedPaymentDate ? formatDate(d.expectedPaymentDate) : ""}
+                  />
+                  <FieldRow label="Advising / nominated bank" value={d.advisingBank} />
+                  <FieldRow label="Period for presentation" value={d.presentationPeriod} />
+                </FieldTable>
+              )}
+
 
               <FieldTable title="Tenor of draft">
                 <FieldRow label="Tenor of draft" value={d.tenorOfDraft} />
