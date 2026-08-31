@@ -34,7 +34,7 @@ function MtbFormPage() {
   const { form } = useParams({ from: "/import/mtb/$form" });
   if (!session) return null;
 
-  const key = form as MtbFormKey;
+  const key = (MTB_FORM_ALIASES[form] ?? form) as MtbFormKey;
   const meta = MTB_FORMS[key];
 
   if (!meta) {
