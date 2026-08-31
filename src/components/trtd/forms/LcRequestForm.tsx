@@ -290,8 +290,6 @@ export function LcRequestForm({
           <Label>System transaction reference number</Label>
           <Input value="Auto generated on submit" readOnly disabled />
         </div>
-        <div className="space-y-2">
-        </div>
         <div className="space-y-2 sm:col-span-2">
           <Label>{variant === "UPAS" ? "UPAS LC request type" : "Transaction type"}</Label>
           <Select value={txnTypeKey} onValueChange={(v) => changeType(v as TxnTypeKey)}>
