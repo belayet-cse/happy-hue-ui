@@ -144,11 +144,35 @@ function RequestDetailPage() {
                   label="Module"
                   value={`${MODULE_LABEL[txn.module ?? "IMPORT"]} → ${txn.subDivision ?? "1.1 MTB Transaction Request"}`}
                 />
-
+                {d.issuingBank ? (
+                  <FieldRow label="Issuing bank" value={d.issuingBank} />
+                ) : null}
+                {d.presentingBank ? (
+                  <FieldRow label="Presenting bank" value={d.presentingBank} />
+                ) : null}
+                {d.designatedBank ? (
+                  <FieldRow label="Designated bank" value={d.designatedBank} />
+                ) : null}
+                {d.documentSetReference ? (
+                  <FieldRow label="Document set reference" value={d.documentSetReference} />
+                ) : null}
+                {d.presentationDate ? (
+                  <FieldRow label="Presentation date" value={d.presentationDate} />
+                ) : null}
+                {d.maturityDate ? (
+                  <FieldRow label="Maturity date" value={d.maturityDate} />
+                ) : null}
+                {d.nonDesignatedReason ? (
+                  <FieldRow
+                    label="Reason for non-designated presentation"
+                    value={d.nonDesignatedReason}
+                  />
+                ) : null}
                 <FieldRow
                   label="Transaction type"
                   value={REQUEST_TYPE_LABEL[txn.requestType]}
                 />
+
                 <FieldRow label="LC type" value={LC_TYPE_LABEL[d.lcType]} />
                 <FieldRow
                   label="Confirmation instruction"
