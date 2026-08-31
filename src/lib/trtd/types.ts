@@ -16,7 +16,8 @@ export type RequestType =
   | "AMENDMENT"
   | "ADVANCE_TT"
   | "REFINANCE"
-  | "MATURITY_EXT";
+  | "MATURITY_EXT"
+  | "NON_DESIGNATED";
 
 export type TxnStatus =
   | "SUBMITTED"
