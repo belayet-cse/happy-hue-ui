@@ -216,6 +216,8 @@ export function LcRequestForm({
   const total = lines.reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
 
   const validate = (): string | null => {
+    if (isOtherBank && !issuingBank.trim()) return "Issuing bank is required";
+    if (isOtherBank && !lcNumber.trim()) return "LC number is required";
     if (!applicantName.trim()) return "Applicant full name is required";
     if (!beneficiaryName.trim()) return "Beneficiary full name is required";
     if (!lines.length) return "At least one LC details block is required";
