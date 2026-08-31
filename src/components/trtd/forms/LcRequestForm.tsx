@@ -44,6 +44,15 @@ export type LcFormVariant = "CONFIRMATION" | "UPAS";
 
 export type TxnTypeKey = "CONF_SIGHT" | "CONF_DEFERRED" | "CONF_DISC" | "POST_ACC_DISC";
 
+/** Tenor drop-down list — identical for LC Confirmation and UPAS LC requests. */
+const TENOR_OPTIONS: string[] = [
+  "At Sight (From the date of LC issuance to LC expiry)",
+  "At Sight (From the date of LC issuance to maturity of the Bill)",
+  "Add Confirmation- From the date of LC issuance to till Negotiation/LC expiry and Discounting- XXX Days from the LC issuance/negotiation/acceptance/Bill of Lading, Beneficiary will receive payment At Sight/XXX days after LC issuance/acceptance/Bill of Lading",
+  "Discounting- XXX Days from the LC issuance/negotiation/acceptance/Bill of Lading, Beneficiary will receive payment At Sight/XXX days after LC issuance/acceptance/Bill of Lading",
+  "Other Pls specify",
+];
+
 const TXN_TYPES: Record<
   TxnTypeKey,
   { label: string; requestType: RequestType; lcType: LcType; tenorSamples: string[] }
@@ -52,39 +61,25 @@ const TXN_TYPES: Record<
     label: "Add Confirmation Only — At Sight LC",
     requestType: "CONFIRMATION",
     lcType: "AT_SIGHT",
-    tenorSamples: [
-      "At Sight (from the date of LC issuance to LC expiry)",
-      "At Sight (from the date of LC issuance to maturity of the Bill)",
-      "Other — please specify",
-    ],
+    tenorSamples: TENOR_OPTIONS,
   },
   CONF_DEFERRED: {
     label: "Add Confirmation Only — Deferred LC",
     requestType: "CONFIRMATION",
     lcType: "DEFERRED",
-    tenorSamples: [
-      "Add Confirmation — from the date of LC issuance till negotiation / LC expiry",
-      "At Sight (from the date of LC issuance to maturity of the Bill)",
-      "Other — please specify",
-    ],
+    tenorSamples: TENOR_OPTIONS,
   },
   CONF_DISC: {
     label: "Confirmation and Discounting",
     requestType: "ADD_CONF_DISC",
     lcType: "UPAS",
-    tenorSamples: [
-      "Add Confirmation — from the date of LC issuance till negotiation / LC expiry, and Discounting — XXX days from the LC issuance / negotiation / acceptance / Bill of Lading. Beneficiary will receive payment At Sight / XXX days after LC issuance / acceptance / Bill of Lading.",
-      "Other — please specify",
-    ],
+    tenorSamples: TENOR_OPTIONS,
   },
   POST_ACC_DISC: {
     label: "Post Acceptance Discounting",
     requestType: "DISCOUNTING",
     lcType: "UPAS",
-    tenorSamples: [
-      "Discounting — XXX days from the LC issuance / negotiation / acceptance / Bill of Lading. Beneficiary will receive payment At Sight / XXX days after LC issuance / acceptance / Bill of Lading.",
-      "Other — please specify",
-    ],
+    tenorSamples: TENOR_OPTIONS,
   },
 };
 
