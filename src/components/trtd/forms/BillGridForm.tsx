@@ -330,7 +330,9 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
               value={
                 mode === "REFINANCE"
                   ? "Refinance MTB Transaction"
-                  : "Maturity Extension Request"
+                  : mode === "OTHER_BANK"
+                    ? "Other Bank's Transaction Request — refinance"
+                    : "Maturity Extension Request"
               }
             />
             <PreviewRow
@@ -338,15 +340,17 @@ export function BillGridForm({ mode, session }: { mode: Mode; session: Session }
               value={rows
                 .map(
                   (r, i) =>
-                    `${i + 1}. ${r.lcNumber} / ${r.billReference || "—"} — ${formatMoney(r.currency, r.billAmount)} — matures ${r.maturityDate}${
-                      mode === "MATURITY_EXT"
+                    `${i + 1}. ${r.lcNumber} / ${r.billReference || "—"} — ${r.applicantName} — ${formatMoney(r.currency, r.billAmount)} — ${r.discountingBankName || "—"} — matures ${r.maturityDate}${
+                      withExtension
                         ? ` → +${r.extensionDays}d → ${r.newMaturityDate || "—"}`
                         : ""
                     }`,
                 )
                 .join("\n")}
             />
+            <PreviewRow label="Total amount" value={formatMoney(totalCurrency, total)} />
             <PreviewRow label="Documents attached" value={documents.join(", ")} />
+
             <PreviewRow label="Remarks" value={remarks} />
           </dl>
           <DialogFooter>
