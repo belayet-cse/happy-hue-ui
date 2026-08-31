@@ -39,6 +39,7 @@ export const REQUEST_TYPE_LABEL: Record<RequestType, string> = {
   ADVANCE_TT: "Advance TT Request",
   REFINANCE: "Refinance MTB Transaction",
   MATURITY_EXT: "Maturity Extension Request",
+  NON_DESIGNATED: "Non-Designated Presentation",
 };
 
 export const REQUEST_TYPE_SHORT: Record<RequestType, string> = {
@@ -49,6 +50,7 @@ export const REQUEST_TYPE_SHORT: Record<RequestType, string> = {
   ADVANCE_TT: "Advance TT",
   REFINANCE: "Refinance",
   MATURITY_EXT: "Maturity Extension",
+  NON_DESIGNATED: "Non-Designated",
 };
 
 export const LC_TYPE_LABEL: Record<LcType, string> = {
