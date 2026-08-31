@@ -52,6 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 type NavChild = {
     to: string;
     label: string;
+    group?: boolean;
     params?: Record<string, string>;
     children?: NavChild[];
   };
@@ -67,6 +68,7 @@ type NavChild = {
     to: string;
     label: string;
     icon: typeof Files;
+    group?: boolean;
     children?: NavChild[];
   }[] = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -74,10 +76,12 @@ type NavChild = {
       to: "/import",
       label: "Import",
       icon: Ship,
+      group: true,
       children: [
         {
           to: "/import/mtb",
           label: "MTB Transaction Request",
+          group: true,
           children: mtbFormLinks,
         },
         { to: "/import/other-bank", label: "Other Bank Transaction Request" },
@@ -88,6 +92,7 @@ type NavChild = {
       to: "/export",
       label: "Export",
       icon: PackageCheck,
+      group: true,
       children: [
         {
           to: "/export/advising-confirmation",
@@ -103,6 +108,7 @@ type NavChild = {
       to: "/guarantee",
       label: "Guarantee",
       icon: ShieldCheck,
+      group: true,
       children: [
         { to: "/guarantee/counter-guarantee", label: "Counter Guarantee Issuance" },
         { to: "/guarantee/advising", label: "Guarantee Advising" },
@@ -130,10 +136,16 @@ const isActive = (to: string) =>
 
   const renderLinks = (children: NavChild[]): React.ReactNode =>
     children.map((child) => {
-      const childActive = isPathActive(child.to);
-      const childExpanded = childActive || hasActiveDescendant(child.children);
+      const childActive = !child.group && isPathActive(child.to);
+      const childExpanded =
+        child.group || childActive || hasActiveDescendant(child.children);
       return (
         <div key={child.to}>
+          {child.group ? (
+            <p className="px-2 py-1.5 text-[11px] font-semibold tracking-wide text-sidebar-foreground/50 uppercase">
+              {child.label}
+            </p>
+          ) : (
           <Link
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             to={child.to as any}
@@ -146,6 +158,7 @@ const isActive = (to: string) =>
           >
             {child.label}
           </Link>
+          )}
           {child.children && childExpanded ? (
             <div className="mt-0.5 ml-3 space-y-0.5 border-l border-sidebar-border pl-3">
               {renderLinks(child.children)}
@@ -171,10 +184,17 @@ const isActive = (to: string) =>
         </div>
 <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {nav.map((item) => {
-            const active = isActive(item.to);
-            const expanded = active || hasActiveDescendant(item.children);
+            const active = !item.group && isActive(item.to);
+            const expanded =
+              item.group || active || hasActiveDescendant(item.children);
             return (
               <div key={item.to}>
+                {item.group ? (
+                  <p className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-sidebar-foreground/60">
+                    <item.icon className="size-4" />
+                    {item.label}
+                  </p>
+                ) : (
                 <Link
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   to={item.to as any}
@@ -193,6 +213,7 @@ const isActive = (to: string) =>
                     </span>
                   ) : null}
                 </Link>
+                )}
                 {item.children && expanded ? (
                   <div className="mt-1 ml-6 space-y-0.5 border-l border-sidebar-border pl-3">
                     {renderLinks(item.children)}

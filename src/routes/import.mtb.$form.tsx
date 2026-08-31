@@ -44,8 +44,12 @@ function MtbFormPage() {
         <Card>
           <CardContent className="pt-6 text-sm text-muted-foreground">
             That request form does not exist.{" "}
-            <Link to="/import/mtb" className="text-primary hover:underline">
-              Back to MTB Transaction Request
+            <Link
+              to="/import/mtb/$form"
+              params={{ form: "lc-request" }}
+              className="text-primary hover:underline"
+            >
+              Go to LC Confirmation request
             </Link>
           </CardContent>
         </Card>
