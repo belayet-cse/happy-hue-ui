@@ -168,6 +168,29 @@ function RequestDetailPage() {
                     value={d.nonDesignatedReason}
                   />
                 ) : null}
+                {d.shipmentFrom ? (
+                  <FieldRow label="Shipment from" value={d.shipmentFrom} />
+                ) : null}
+                {d.shipmentTo ? <FieldRow label="Shipment to" value={d.shipmentTo} /> : null}
+                {d.pricingInformation ? (
+                  <FieldRow label="Pricing information" value={d.pricingInformation} />
+                ) : null}
+                {d.financeArrangementRequest ? (
+                  <FieldRow
+                    label="Request for arrange finance"
+                    value={d.financeArrangementRequest}
+                  />
+                ) : null}
+                {d.billAmount ? (
+                  <FieldRow
+                    label="Bill amount"
+                    value={formatMoney(d.billCurrency ?? d.currency, d.billAmount)}
+                  />
+                ) : null}
+                {d.financingTenorDays ? (
+                  <FieldRow label="Financing tenor" value={d.financingTenorDays} />
+                ) : null}
+
                 <FieldRow
                   label="Transaction type"
                   value={REQUEST_TYPE_LABEL[txn.requestType]}
