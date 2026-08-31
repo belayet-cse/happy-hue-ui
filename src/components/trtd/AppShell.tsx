@@ -60,16 +60,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       label: "Import",
       icon: Ship,
       children: [
-        { to: "/import/mtb", label: "MTB Transaction Request" },
-        { to: "/import/other-bank", label: "Other Bank Transaction Request" },
-        { to: "/import/non-designated", label: "Non-Designated Presentation" },
+        { to: "/import/mtb", label: "1.1 MTB Transaction Request" },
+        { to: "/import/other-bank", label: "1.2 Other Bank Transaction Request" },
+        { to: "/import/non-designated", label: "1.3 Non-Designated Presentation" },
       ],
     },
-    { to: "/export", label: "Export", icon: PackageCheck },
-    { to: "/guarantee", label: "Guarantee", icon: ShieldCheck },
+    {
+      to: "/export",
+      label: "Export",
+      icon: PackageCheck,
+      children: [
+        {
+          to: "/export/advising-confirmation",
+          label: "2.1 Export LC Advising & Confirmation",
+        },
+        {
+          to: "/export/negotiation-discounting",
+          label: "2.2 Export Bill Negotiation / Discounting",
+        },
+      ],
+    },
+    {
+      to: "/guarantee",
+      label: "Guarantee",
+      icon: ShieldCheck,
+      children: [
+        { to: "/guarantee/counter-guarantee", label: "3.1 Counter Guarantee Issuance" },
+        { to: "/guarantee/advising", label: "3.2 Guarantee Advising" },
+      ],
+    },
     { to: "/reports", label: "Reports & Analytics", icon: BarChart3 },
     { to: "/requests", label: "Transactions", icon: Files },
     { to: "/notifications", label: "Notifications", icon: Bell },
+
   ];
 
   const isActive = (to: string) =>
