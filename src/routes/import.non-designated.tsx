@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/trtd/AppShell";
 import { PageHeader, useGuard } from "@/components/trtd/Guard";
-import { PhasePlaceholder } from "@/components/trtd/Placeholder";
+import { NonDesignatedForm } from "@/components/trtd/forms/NonDesignatedForm";
 
 export const Route = createFileRoute("/import/non-designated")({
   head: () => ({
@@ -30,25 +30,9 @@ function NonDesignatedPage() {
     <AppShell>
       <PageHeader
         title="Import → Non-Designated Presentation"
-        description="1.3 — documents presented at a bank other than the designated bank."
+        description="Documents presented at a bank other than the designated bank under an MTB LC."
       />
-      <PhasePlaceholder
-        phase="a later phase"
-        fields={[
-          "LC number",
-          "Applicant",
-          "Beneficiary",
-          "Presenting bank",
-          "Designated bank",
-          "Document set reference",
-          "Bill amount & currency",
-          "Presentation date",
-          "Maturity date",
-          "Reason for non-designated presentation",
-          "Documents attached",
-          "Remarks",
-        ]}
-      />
+      <NonDesignatedForm session={session} />
     </AppShell>
   );
 }
