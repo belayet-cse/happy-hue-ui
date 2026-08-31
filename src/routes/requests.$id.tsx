@@ -39,10 +39,12 @@ import {
 } from "@/lib/trtd/store";
 import {
   LC_TYPE_LABEL,
+  MODULE_LABEL,
   REQUEST_TYPE_LABEL,
   type PriceQuote,
   type Transaction,
 } from "@/lib/trtd/types";
+
 
 export const Route = createFileRoute("/requests/$id")({
   head: () => ({
@@ -138,7 +140,12 @@ function RequestDetailPage() {
             <TabsContent value="details" className="space-y-4">
               <FieldTable title="Transaction">
                 <FieldRow label="System transaction reference" value={txn.referenceNo} />
+                <FieldRow
+                  label="Module"
+                  value={`${MODULE_LABEL[txn.module ?? "IMPORT"]} → ${txn.subDivision ?? "1.1 MTB Transaction Request"}`}
+                />
                 <FieldRow label="Branch / unit" value={txn.branch} />
+
                 <FieldRow
                   label="Transaction type"
                   value={REQUEST_TYPE_LABEL[txn.requestType]}
@@ -188,9 +195,40 @@ function RequestDetailPage() {
                 <FieldRow label="Tenor of draft" value={d.tenorOfDraft} />
               </FieldTable>
 
+              {d.amendmentRequests?.length ? (
+                <FieldTable title="Amendment requests">
+                  {d.amendmentRequests.map((r, i) => (
+                    <FieldRow key={i} label={`Amendment ${i + 1}`} value={r} />
+                  ))}
+                </FieldTable>
+              ) : null}
+
+              {d.bills?.length ? (
+                <FieldTable title="Bills">
+                  {d.bills.map((b, i) => (
+                    <FieldRow
+                      key={i}
+                      label={`${i + 1}. ${b.lcNumber}${b.billReference ? ` / ${b.billReference}` : ""}`}
+                      value={[
+                        formatMoney(b.currency, b.billAmount),
+                        b.applicantName,
+                        b.discountingBankName,
+                        b.maturityDate ? `matures ${formatDate(b.maturityDate)}` : "",
+                        b.extensionDays
+                          ? `+${b.extensionDays} days → ${formatDate(b.newMaturityDate)}`
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    />
+                  ))}
+                </FieldTable>
+              ) : null}
+
               <FieldTable title="Goods & shipment">
                 <FieldRow label="Description of item" value={d.goodsDescription} />
                 <FieldRow label="HS code" value={d.hsCode} />
+
                 <FieldRow label="Country of origin" value={d.countryOfOrigin} />
                 <FieldRow label="Shipment from" value={d.portOfLoading} />
                 <FieldRow label="Shipment to" value={d.portOfDischarge} />

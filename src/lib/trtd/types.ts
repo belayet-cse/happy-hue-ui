@@ -1,6 +1,22 @@
 export type Role = "RM" | "MFIS" | "MITS";
 
-export type RequestType = "CONFIRMATION" | "DISCOUNTING" | "ADD_CONF_DISC";
+/** Top-level platform modules (BRD front page). Supply Chain & Advisory deferred. */
+export type ModuleKey = "IMPORT" | "EXPORT" | "GUARANTEE";
+
+export const MODULE_LABEL: Record<ModuleKey, string> = {
+  IMPORT: "Import",
+  EXPORT: "Export",
+  GUARANTEE: "Guarantee",
+};
+
+export type RequestType =
+  | "CONFIRMATION"
+  | "DISCOUNTING"
+  | "ADD_CONF_DISC"
+  | "AMENDMENT"
+  | "ADVANCE_TT"
+  | "REFINANCE"
+  | "MATURITY_EXT";
 
 export type TxnStatus =
   | "SUBMITTED"
@@ -16,14 +32,22 @@ export type LcType = "AT_SIGHT" | "DEFERRED" | "UPAS";
 
 export const REQUEST_TYPE_LABEL: Record<RequestType, string> = {
   CONFIRMATION: "LC Confirmation Request",
-  DISCOUNTING: "LC Discounting Request (UPAS LC)",
+  DISCOUNTING: "Post Acceptance Discounting (UPAS LC)",
   ADD_CONF_DISC: "Add Confirmation & Discounting Request",
+  AMENDMENT: "Amendment Request",
+  ADVANCE_TT: "Advance TT Request",
+  REFINANCE: "Refinance MTB Transaction",
+  MATURITY_EXT: "Maturity Extension Request",
 };
 
 export const REQUEST_TYPE_SHORT: Record<RequestType, string> = {
   CONFIRMATION: "Confirmation",
   DISCOUNTING: "Discounting",
   ADD_CONF_DISC: "Add Conf. & Disc.",
+  AMENDMENT: "Amendment",
+  ADVANCE_TT: "Advance TT",
+  REFINANCE: "Refinance",
+  MATURITY_EXT: "Maturity Extension",
 };
 
 export const LC_TYPE_LABEL: Record<LcType, string> = {
@@ -33,15 +57,16 @@ export const LC_TYPE_LABEL: Record<LcType, string> = {
 };
 
 export const STATUS_LABEL: Record<TxnStatus, string> = {
-  SUBMITTED: "Submitted to MFIS",
+  SUBMITTED: "Pending at FI counter",
   QUERY_RAISED: "Query Raised",
-  FORWARDED: "Forwarded to Third Bank / OBU",
-  PRICE_OFFERED: "Price Offered",
+  FORWARDED: "Under FI processing",
+  PRICE_OFFERED: "Pending for RM response",
   ACCEPTED: "Accepted — with MITS",
   REJECTED_BY_RM: "Rejected by RM",
   EXECUTED: "Executed by MITS",
   COMPLETED: "Completed",
 };
+
 
 export interface RequestDetails {
   lcNumber: string;
@@ -76,7 +101,64 @@ export interface RequestDetails {
   beneficiaryPaymentNote: string;
   remarks: string;
   lcCopyFileName: string;
+
+  /** BRD 15A — charge category: Confirmation / Discounting (both can apply) */
+  chargeCategories?: string[] | undefined;
+  /** BRD 15B — charges on account of: Applicant / Beneficiary / Mixed (specify) */
+  chargesOnAccountOf?: string | undefined;
+  /** BRD 14 — advise through bank */
+  adviseThroughBank?: string | undefined;
+  /** Amendment request lines entered by RM */
+  amendmentRequests?: string[] | undefined;
+  /** Bill rows for Refinance / Maturity Extension / other-bank requests */
+  bills?: BillRow[] | undefined;
 }
+
+/** A single bill line for refinance / maturity-extension style requests. */
+export interface BillRow {
+  lcNumber: string;
+  applicantName: string;
+  billReference: string;
+  currency: string;
+  billAmount: number;
+  discountingBankName: string;
+  maturityDate: string;
+  extensionDays: number;
+  newMaturityDate: string;
+}
+
+/** All-empty request details so each form only fills the fields it owns. */
+export function blankDetails(): RequestDetails {
+  return {
+    lcNumber: "",
+    dateOfIssue: "",
+    currency: "USD",
+    amount: 0,
+    lcType: "AT_SIGHT",
+    tenorOfDraft: "",
+    confirmationInstruction: "NOT_REQUIRED",
+    applicantName: "",
+    applicantAddress: "",
+    beneficiaryName: "",
+    beneficiaryAddress: "",
+    goodsDescription: "",
+    hsCode: "",
+    countryOfOrigin: "",
+    portOfLoading: "",
+    portOfDischarge: "",
+    latestShipmentDate: "",
+    expiryDate: "",
+    placeOfExpiry: "",
+    advisingBank: "",
+    presentationPeriod: "",
+    chargesBorneBy: "",
+    beneficiaryPaymentNote: "",
+    remarks: "",
+    lcCopyFileName: "",
+  };
+}
+
+
 
 export interface PriceQuote {
   quotedAt: string;
@@ -159,8 +241,13 @@ export interface Execution {
 export interface Transaction {
   id: string;
   referenceNo: string;
+  /** Platform module this request belongs to (defaults to Import) */
+  module?: ModuleKey | undefined;
+  /** Sub-division label, e.g. "1.1 MTB Transaction Request" */
+  subDivision?: string | undefined;
   requestType: RequestType;
   status: TxnStatus;
+
   createdAt: string;
   updatedAt: string;
   raisedByName: string;
