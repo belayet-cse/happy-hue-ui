@@ -111,6 +111,15 @@ export interface RequestDetails {
   chargesOnAccountOf?: string | undefined;
   /** BRD 14 — advise through bank */
   adviseThroughBank?: string | undefined;
+  /** Issuing bank — Import 1.2 Other Bank's Transaction Request */
+  issuingBank?: string | undefined;
+  /** Import 1.3 Non-Designated Presentation */
+  presentingBank?: string | undefined;
+  designatedBank?: string | undefined;
+  documentSetReference?: string | undefined;
+  presentationDate?: string | undefined;
+  maturityDate?: string | undefined;
+  nonDesignatedReason?: string | undefined;
   /** Amendment request lines entered by RM */
   amendmentRequests?: string[] | undefined;
   /** Bill rows for Refinance / Maturity Extension / other-bank requests */
