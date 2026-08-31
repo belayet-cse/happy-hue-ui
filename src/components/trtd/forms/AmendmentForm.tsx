@@ -39,7 +39,7 @@ export function AmendmentForm({ session }: { session: Session }) {
   );
 
   const [lcNumber, setLcNumber] = useState("");
-  const [requests, setRequests] = useState<string[]>(["", "", "", ""]);
+  const [requests, setRequests] = useState<string[]>([""]);
   const [documents, setDocuments] = useState<string[]>([]);
   const [remarks, setRemarks] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -147,8 +147,8 @@ export function AmendmentForm({ session }: { session: Session }) {
           <div key={i} className="flex items-start gap-2">
             <Textarea
               rows={2}
-              aria-label={`Amendment request ${i + 1}`}
-              placeholder={`Amendment request ${i + 1}`}
+              aria-label={requests.length > 1 ? `Amendment request ${i + 1}` : "Amendment request"}
+              placeholder="Amendment request"
               value={r}
               onChange={(e) =>
                 setRequests((prev) => prev.map((x, idx) => (idx === i ? e.target.value : x)))
@@ -158,7 +158,7 @@ export function AmendmentForm({ session }: { session: Session }) {
               type="button"
               variant="ghost"
               size="icon"
-              aria-label={`Remove amendment request ${i + 1}`}
+              aria-label={requests.length > 1 ? `Remove amendment request ${i + 1}` : "Remove amendment request"}
               disabled={requests.length === 1}
               onClick={() => setRequests((prev) => prev.filter((_, idx) => idx !== i))}
             >
@@ -172,7 +172,7 @@ export function AmendmentForm({ session }: { session: Session }) {
           size="sm"
           onClick={() => setRequests((prev) => [...prev, ""])}
         >
-          <Plus className="mr-1 h-4 w-4" /> Add amendment
+          <Plus className="mr-1 h-4 w-4" /> Add another amendment request
         </Button>
       </Section>
 
